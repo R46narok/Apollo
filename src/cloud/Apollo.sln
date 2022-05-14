@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{AE2036B7-989D-4A93-94EF-089790D7CDE0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{8671F126-29D8-4403-B5F8-E81F9DD11934}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gateways", "Gateways", "{8512E24D-013F-49EC-A218-F76AD67D65A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apollo.Services.Authorization", "Apollo.Services.Authorization", "{28FB0CFE-0BD1-497C-9F20-D04D7795AC51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.Services.Authorization", "Services\Apollo.Services.Authorization\Apollo.Services.Authorization\Apollo.Services.Authorization.csproj", "{107B6871-1BCD-4834-B742-67CC2A4D5CFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.Services.Authorization.Api", "Services\Apollo.Services.Authorization\Apollo.Services.Authorization.Api\Apollo.Services.Authorization.Api.csproj", "{ECE1027C-BC2A-4249-8DF9-AB24482542B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{AF320A6B-F98B-4E2C-9923-5E346B922133}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{28FB0CFE-0BD1-497C-9F20-D04D7795AC51} = {AE2036B7-989D-4A93-94EF-089790D7CDE0}
+		{107B6871-1BCD-4834-B742-67CC2A4D5CFF} = {28FB0CFE-0BD1-497C-9F20-D04D7795AC51}
+		{ECE1027C-BC2A-4249-8DF9-AB24482542B3} = {28FB0CFE-0BD1-497C-9F20-D04D7795AC51}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{107B6871-1BCD-4834-B742-67CC2A4D5CFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{107B6871-1BCD-4834-B742-67CC2A4D5CFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{107B6871-1BCD-4834-B742-67CC2A4D5CFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{107B6871-1BCD-4834-B742-67CC2A4D5CFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECE1027C-BC2A-4249-8DF9-AB24482542B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECE1027C-BC2A-4249-8DF9-AB24482542B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECE1027C-BC2A-4249-8DF9-AB24482542B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECE1027C-BC2A-4249-8DF9-AB24482542B3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
