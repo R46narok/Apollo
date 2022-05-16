@@ -12,11 +12,8 @@ import {createStore} from "redux";
 import rootReducer from "./reducers/rootReducer";
 import {Provider} from "react-redux";
 import Login from "./routes/Login";
+import {store} from "./helpers/store";
 
-const store = createStore(
-    rootReducer,
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
