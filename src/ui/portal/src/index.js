@@ -8,11 +8,11 @@ import {
     Routes,
     Route,
 } from "react-router-dom";
-import {createStore} from "redux";
-import rootReducer from "./reducers/rootReducer";
 import {Provider} from "react-redux";
 import Login from "./routes/Login";
 import {store} from "./helpers/store";
+import NavigationBar from "./components/NavigationBar";
+import Footer from "./components/Footer";
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -20,10 +20,12 @@ root.render(
   <React.StrictMode>
       <Provider store={store}>
           <BrowserRouter>
+              <NavigationBar active="Home"/>
               <Routes>
                   <Route path="/" element={<App />} />
                   <Route path="profile/login" element={<Login/>} />
               </Routes>
+              <Footer/>
           </BrowserRouter>
       </Provider>
   </React.StrictMode>
