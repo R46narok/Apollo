@@ -1,10 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Core", "Apollo.F1.Core\Apollo.F1.Core.csproj", "{48C8682C-741B-479F-AAB7-F972BD61D7CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Math", "Apollo.F1.Math\Apollo.F1.Math.csproj", "{369271E9-B17E-4B17-BDEF-4E0241D23E3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Service", "Apollo.F1.Service\Apollo.F1.Service.csproj", "{CFB5D0BA-93F0-4A2E-A5D4-9D5E36D04CA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Core", "Apollo.F1.Core\Apollo.F1.Core.csproj", "{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{369271E9-B17E-4B17-BDEF-4E0241D23E3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{369271E9-B17E-4B17-BDEF-4E0241D23E3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{369271E9-B17E-4B17-BDEF-4E0241D23E3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{369271E9-B17E-4B17-BDEF-4E0241D23E3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFB5D0BA-93F0-4A2E-A5D4-9D5E36D04CA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFB5D0BA-93F0-4A2E-A5D4-9D5E36D04CA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFB5D0BA-93F0-4A2E-A5D4-9D5E36D04CA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFB5D0BA-93F0-4A2E-A5D4-9D5E36D04CA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

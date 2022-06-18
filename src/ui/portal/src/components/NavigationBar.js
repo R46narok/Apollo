@@ -7,7 +7,6 @@ const NavigationBar = ({active}) => {
     const activeStyle = "nav-link active";
 
     const homeStyle = active === "Home" ? activeStyle : baseStyle;
-
     const authStatus = useSelector((state) => state.authentication);
 
     return(
