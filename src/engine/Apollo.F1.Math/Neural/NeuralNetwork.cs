@@ -70,6 +70,13 @@ public class NeuralNetwork
         {
             delta[i] = new Matrix(trainingLength, _layers[i]);
         }
+
+        var error = new Matrix();
+        
+        for (int i = 0; i < trainingLength; ++i)
+        {
+            
+        }
     }
     
     public double ComputeCost(Matrix x, Matrix y)
