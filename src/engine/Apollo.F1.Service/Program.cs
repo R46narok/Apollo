@@ -1,23 +1,21 @@
-using Apollo.F1.Math;
 using Apollo.F1.Math.Neural;
-using Apollo.F1.Service;
+using MathNet.Numerics.LinearAlgebra;
 
-var architecture = new uint[] { 3, 3, 2};
-var nn = new NeuralNetwork(architecture);
+var nn = new NeuralNetwork(new[] {3, 3, 2});
+var x = Matrix<double>.Build.Dense(1, 4);
 
-var x = new Matrix(new[]
-{
-    1.0, 10.0, 20.0, 30
-}, 1, 4);
+x[0, 0] = 1.0;
+x[0, 1] = 10;
+x[0, 2] = 20;
+x[0, 3] = 30;
 
-var y = new Matrix(new[]
-{
-    1.0, 0.5
-}, 1, 4);
-Console.WriteLine(nn.ComputeCost(x, y));
+var y = Matrix<double>.Build.Dense(1, 2);
+y[0, 0] = 1.0;
+y[0, 1] = 0.5;
 
-IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services => { services.AddHostedService<Worker>(); })
-    .Build();
-
-await host.RunAsync();
+nn.Backpropagation(x, y);
+// IHost host = Host.CreateDefaultBuilder(args)
+//     .ConfigureServices(services => { services.AddHostedService<Worker>(); })
+//     .Build();
+//
+// await host.RunAsync();
