@@ -29,9 +29,7 @@ public class NeuralNetwork
         var builder = Matrix<double>.Build;
         for (int i = 0; i < l; ++i)
         {
-            _weights[i] = i != l - 1 ? 
-                builder.Random(_layers[i + 1], _layers[i] + 1) 
-                : builder.Random(_layers[i + 1], _layers[i]);
+            _weights[i] = builder.Random(_layers[i + 1], _layers[i] + 1);
         }
     }
 
@@ -41,10 +39,6 @@ public class NeuralNetwork
         for (int i = 0; i < l; ++i)
         {
             _layers[i]++;
-            
-            var matrix = _weights[i];
-            for (int j = 0; j < matrix.RowCount; ++j)
-                matrix[j, 0] = 1.0;
         }
     }
     
@@ -57,11 +51,14 @@ public class NeuralNetwork
         {
             activation = _weights[i].Multiply(activation);
             activation.Apply(Activation.Sigmoid);
-
-            if (cache is not null && i < cache.Length)
+            
+            if (cache is not null)
             {
                 cache[i] = activation.Column(0);
             }
+
+            activation = activation.InsertRow(0,
+                Vector<double>.Build.Dense(1, 1.0));
         }
         
         return activation;
@@ -69,6 +66,9 @@ public class NeuralNetwork
     
     public void Backpropagation(Matrix<double> x, Matrix<double> y)
     {
+        x = x.InsertColumn(0, 
+            Vector<double>.Build.Dense(x.RowCount, 1.0)); // Add bias value
+        
         int l = _layers.Length;
         int m = x.RowCount;
         
@@ -101,7 +101,14 @@ public class NeuralNetwork
             // Compute the rest of the errors
             for (int j = error.Length - 2; j >= 0; --j)
             {
-                var idk = _weights[j + 1].Multiply(error[j + 1]);
+                var errorMatrix = error[j + 1].ToRowMatrix();
+                errorMatrix = errorMatrix.Multiply(_weights[j + 1]);
+                errorMatrix = errorMatrix.ElementwiseMultiplication(a[j]);
+
+                var rhs = a[j].Multiply(-1.0);
+                rhs = rhs.Add(1.0);
+
+                errorMatrix = errorMatrix.ElementwiseMultiplication(rhs);
             }
         }
     }
