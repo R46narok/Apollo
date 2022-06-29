@@ -1,6 +1,8 @@
-﻿using Apollo.F1.Math.Exceptions;
+﻿using System.Reflection;
+using Apollo.F1.Math.Exceptions;
 using Apollo.F1.Math.Extensions;
 using Apollo.F1.Math.Functions;
+using MathNet.Numerics.Distributions;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace Apollo.F1.Math.Neural;
@@ -9,6 +11,7 @@ public class NeuralNetwork
 {
     private readonly int[] _layers;
     private Matrix<double>[] _weights = null!;
+    private Matrix<double>[] _delta = null!;
     
     public NeuralNetwork(int[] layers)
     {
@@ -26,10 +29,12 @@ public class NeuralNetwork
         int l = _layers.Length - 1;
         
         _weights = new Matrix<double>[l];
+        _delta = new Matrix<double>[l];
         var builder = Matrix<double>.Build;
         for (int i = 0; i < l; ++i)
         {
-            _weights[i] = builder.Random(_layers[i + 1], _layers[i] + 1);
+            _weights[i] = builder.Random(_layers[i + 1], _layers[i] + 1, new ContinuousUniform(-1.0 * System.Math.Sqrt(2), System.Math.Sqrt(2)));
+            _delta[i] = builder.Dense(_layers[i + 1], _layers[i] + 1, 0);
         }
     }
 
@@ -56,8 +61,8 @@ public class NeuralNetwork
             {
                 cache[i] = activation.Column(0);
             }
-
-            activation = activation.InsertRow(0,
+            if (i != l - 1)
+                activation = activation.InsertRow(0,
                 Vector<double>.Build.Dense(1, 1.0));
         }
         
@@ -75,41 +80,54 @@ public class NeuralNetwork
         var M = Matrix<double>.Build;
         var V = Vector<double>.Build;
 
-        var delta = new Matrix<double>[l];
-        for (int i = 1; i < l; ++i)
-        {
-            delta[i - 1] = M.Dense(m, _layers[i]);
-        }
-    
         // For every training sample
         for (int i = 0; i < m; ++i)
         {
-            // Init errors
-            var error = new Vector<double>[l - 1];
-            for (int j = 1; j < l; ++j)
-                error[j - 1] = V.Dense(m);
+            var a1 = x.Row(i).ToColumnMatrix();
             
-            // Compute activation of every neuron in the neural network
-            // and the output a(L)
-            var a = new Vector<double>[l - 1];
-            ForwardPropagation(x.Row(i), a);
+            var z2 = _weights[0].Multiply(a1);
+            var a2 = z2.Map(Activation.Sigmoid);
+            a2 = a2.InsertRow(0,
+                V.Dense(1, 1.0));
             
-            // Compute the the last set of errors 
-            var expectedOutput = y.Row(i);
-            error[l - 2] = a[l - 2].Subtract(expectedOutput);
+            var z3 = _weights[1].Multiply(a2);
+            var a3 = z3.Map(Activation.Sigmoid);
+
+            var yVector = y.Row(i).ToColumnMatrix();
+            var delta3 = (a3 - yVector).Transpose();
+            var delta2 = delta3.Multiply(_weights[1]).ElementwiseMultiplication(a2.Transpose());
+
+            delta2 = delta2.RemoveColumn(0);
             
-            // Compute the rest of the errors
-            for (int j = error.Length - 2; j >= 0; --j)
+            _delta[0] = _delta[0] + (a1.Multiply(delta2)).Transpose();
+            _delta[1] = _delta[1] + (a2.Multiply(delta3)).Transpose();
+        }
+
+        _delta[0] = _delta[0] * (1.0 / m);
+        _delta[1] = _delta[1] * (1.0 / m);
+    }
+
+    public void GradientDescent(Matrix<double> x, Matrix<double> y)
+    {
+        var alpha = 0.5;
+        var iterations = 100;
+
+        for (int i = 0; i < iterations; ++i)
+        {
+            var temp = new Matrix<double>[_weights.Length];
+
+            for (int j = 0; j < _weights.Length; ++j)
             {
-                var errorMatrix = error[j + 1].ToRowMatrix();
-                errorMatrix = errorMatrix.Multiply(_weights[j + 1]);
-                errorMatrix = errorMatrix.ElementwiseMultiplication(a[j]);
-
-                var rhs = a[j].Multiply(-1.0);
-                rhs = rhs.Add(1.0);
-
-                errorMatrix = errorMatrix.ElementwiseMultiplication(rhs);
+                var w = _weights[j];
+                temp[j] = Matrix<double>.Build.Dense(w.RowCount, w.ColumnCount);
+                
+                for (int k = 0; k < w.RowCount; ++k)
+                for (int l = 0; l < w.ColumnCount; ++l)
+                    temp[j][k, l] = w[k, l] - alpha * _delta[j][k, l];
             }
+            _weights = temp;
+            Console.WriteLine(ComputeCost(x, y));
+            Backpropagation(x, y);
         }
     }
     
@@ -118,38 +136,24 @@ public class NeuralNetwork
         double cost = 0.0;
         int m = x.RowCount;
     
-        for (int i = 0; i < m; ++i)
-        {
-            var sample = x.Row(i);
-            var hypothesis = ForwardPropagation(sample, null);
-    
-            for (int k = 0; k < hypothesis.RowCount; ++k)
-            {
-                var output = hypothesis[k, 0];
-                var expectedOutput = y[i, k];
-    
-                cost += expectedOutput * System.Math.Log10(output) +
-                        (1 - expectedOutput) * System.Math.Log10(1 - output);
-            }
-        }
-    
-        cost *= -1 * (1 / m);
-    
-        double regularization = 0.0;
-        int L = _layers.Length - 1;
-        for (int l = 1; l < L; ++l)
-        {
-            for (int i = 0; i < _weights[l].RowCount; ++i)
-            {
-                for (int j = 1; j < _weights[l].ColumnCount; ++j)
-                {
-                    regularization += System.Math.Pow(_weights[l][i, j], 2);
-                }
-            }
-        }
-    
-        regularization *= 0.25 * (1 / (2 * m));
+        var X = x.InsertColumn(0, 
+            Vector<double>.Build.Dense(x.RowCount, 1.0));
+
+        var a1 = X;
         
-        return cost + regularization;
+        var z2 = a1.Multiply(_weights[0].Transpose());
+        var a2 = z2.Map(f => Activation.Sigmoid(f));
+
+        a2 = a2.InsertColumn(0,
+            Vector<double>.Build.Dense(a2.RowCount, 1.0));
+        var z3 = a2.Multiply(_weights[1].Transpose());
+        var a3 = z3.Map(Activation.Sigmoid);
+        var h_x = a3;
+
+        var temp = y.Multiply(-1.0).PointwiseMultiply(h_x.PointwiseLog());
+        temp = temp - ((y.Multiply(-1.0) + 1).PointwiseMultiply((h_x.Multiply(-1) + 1).PointwiseLog()));
+        cost = temp.ColumnSums().Sum();
+        cost /= (double)m;
+        return cost;
     }
 }
