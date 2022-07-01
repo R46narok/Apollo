@@ -33,7 +33,8 @@ public class NeuralNetwork
         var builder = Matrix<double>.Build;
         for (int i = 0; i < l; ++i)
         {
-            _weights[i] = builder.Random(_layers[i + 1], _layers[i] + 1, new ContinuousUniform(-1.0 * System.Math.Sqrt(2), System.Math.Sqrt(2)));
+            var bound = System.Math.Sqrt(6);
+            _weights[i] = builder.Random(_layers[i + 1], _layers[i] + 1, new ContinuousUniform(-1.0 * bound, bound));
             _delta[i] = builder.Dense(_layers[i + 1], _layers[i] + 1, 0);
         }
     }
@@ -109,7 +110,7 @@ public class NeuralNetwork
 
     public void GradientDescent(Matrix<double> x, Matrix<double> y)
     {
-        var alpha = 0.5;
+        var alpha = 0.25;
         var iterations = 100;
 
         for (int i = 0; i < iterations; ++i)
@@ -126,7 +127,7 @@ public class NeuralNetwork
                     temp[j][k, l] = w[k, l] - alpha * _delta[j][k, l];
             }
             _weights = temp;
-            Console.WriteLine(ComputeCost(x, y));
+            Console.WriteLine($"Iteration {i}, Cost: {ComputeCost(x, y)}");
             Backpropagation(x, y);
         }
     }
@@ -154,6 +155,7 @@ public class NeuralNetwork
         temp = temp - ((y.Multiply(-1.0) + 1).PointwiseMultiply((h_x.Multiply(-1) + 1).PointwiseLog()));
         cost = temp.ColumnSums().Sum();
         cost /= (double)m;
-        return cost;
+        
+        return cost + (0.25/(2 * m));
     }
 }
