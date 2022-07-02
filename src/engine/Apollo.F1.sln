@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Service", "Apollo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Core", "Apollo.F1.Core\Apollo.F1.Core.csproj", "{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Math.Cuda", "Apollo.F1.Math.Cuda\Apollo.F1.Math.Cuda.csproj", "{3FC11815-EE29-49A6-81B1-48B4106CF40C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FC11815-EE29-49A6-81B1-48B4106CF40C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC11815-EE29-49A6-81B1-48B4106CF40C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FC11815-EE29-49A6-81B1-48B4106CF40C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FC11815-EE29-49A6-81B1-48B4106CF40C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

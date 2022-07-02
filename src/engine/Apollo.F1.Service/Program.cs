@@ -1,8 +1,11 @@
+using Apollo.F1.Math.Common.Buffers;
+using Apollo.F1.Math.Cuda.Buffers;
+using Apollo.F1.Math.Cuda.Kernels;
 using Apollo.F1.Math.Learning;
 using Apollo.F1.Math.Neural;
 using MathNet.Numerics.LinearAlgebra;
 
-var options = new NeuralNetworkOptions
+/*var options = new NeuralNetworkOptions
 {
     Layers = new []{ 784, 300, 10}
 };
@@ -59,8 +62,34 @@ while (!rd.EndOfStream)
 
 }
 
-Console.WriteLine($"Correct: {correct}, Wrong: {wrong}");
+Console.WriteLine($"Correct: {correct}, Wrong: {wrong}");*/
 
+using var a = new GpuBuffer(new BufferDescriptor
+{
+    Usage = BufferUsage.GpuOnly,
+    Offset = 0,
+    Stride = 0,
+    ByteWidth = sizeof(double) * 1024
+});
+
+var first = new double[1024];
+for (int i = 0; i < 1024; ++i)
+{
+    first[i] = Random.Shared.NextDouble();
+}
+
+Vram.CopyHostToDevice(first, a.Ptr, first.Length * sizeof(double));
+
+var kernel = new FunctionSigmoidGradientKernel();
+kernel.Invoke(new []{a});
+
+var third = new double[1024];
+Vram.CopyDeviceToHost(a.Ptr, third, 1024 * sizeof(double));
+
+for (int i = 0; i < 1024; ++i)
+{
+    Console.WriteLine(third[i]);
+}
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })
 //     .Build();
