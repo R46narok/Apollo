@@ -11,6 +11,19 @@ public class GpuBuffer : BufferBase, IDisposable
         Ptr = Vram.Malloc(ByteWidth);
     }
 
+    public override void Upload(double[] data)
+    {
+        Vram.CopyHostToDevice(data, Ptr, ByteWidth);
+    }
+
+    public override double[]? Read()
+    {
+        var cpuBuffer = new double[ByteWidth / sizeof(double)];
+        Vram.CopyDeviceToHost(Ptr, cpuBuffer, ByteWidth);
+
+        return cpuBuffer;
+    }
+
     public void Dispose()
     {
         Vram.Free(Ptr);

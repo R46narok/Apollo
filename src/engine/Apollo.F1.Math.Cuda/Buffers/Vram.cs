@@ -1,6 +1,7 @@
 ﻿// ReSharper disable IdentifierTypo
 
 using System.Runtime.InteropServices;
+using Apollo.F1.Math.Cuda.Common;
 
 namespace Apollo.F1.Math.Cuda.Buffers;
 

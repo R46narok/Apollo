@@ -4,7 +4,6 @@ public enum BufferUsage
 {
     CpuOnly,
     GpuOnly,
-    CpuAndGpu
 }
 
 public class BufferDescriptor

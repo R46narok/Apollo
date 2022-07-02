@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Apollo.F1.Math.Cuda;
+namespace Apollo.F1.Math.Cuda.Common;
 
 public static class Dll
 {

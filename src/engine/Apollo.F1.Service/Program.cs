@@ -1,9 +1,6 @@
-using Apollo.F1.Math.Common.Buffers;
+using Apollo.F1.Math.Common.LinearAlgebra;
+using Apollo.F1.Math.Cuda;
 using Apollo.F1.Math.Cuda.Buffers;
-using Apollo.F1.Math.Cuda.Kernels;
-using Apollo.F1.Math.Learning;
-using Apollo.F1.Math.Neural;
-using MathNet.Numerics.LinearAlgebra;
 
 /*var options = new NeuralNetworkOptions
 {
@@ -63,66 +60,9 @@ while (!rd.EndOfStream)
 }
 
 Console.WriteLine($"Correct: {correct}, Wrong: {wrong}");*/
+Matrix.BufferFactory = new GpuBufferFactory();
+Matrix.Operations = new GpuMatrixOperations();
 
-using var a = new GpuBuffer(new BufferDescriptor
-{
-    Usage = BufferUsage.GpuOnly,
-    Offset = 0,
-    Stride = 0,
-    ByteWidth = sizeof(double) * 1024
-});
-
-using var b = new GpuBuffer(new BufferDescriptor
-{
-    Usage = BufferUsage.GpuOnly,
-    Offset = 0,
-    Stride = 0,
-    ByteWidth = sizeof(double) * 1024
-});
-
-using var c = new GpuBuffer(new BufferDescriptor
-{
-    Usage = BufferUsage.GpuOnly,
-    Offset = 0,
-    Stride = 0,
-    ByteWidth = sizeof(double) * 64 * 64
-});
-var first = new double[1024];
-var second = new double[1024];
-for (int i = 0; i < 64; ++i)
-{
-    for (int j = 0; j < 16; j++)
-    {
-        first[16 * i + j] = Random.Shared.Next(1, 10);
-    }
-}
-
-for (int i = 0; i < 16; ++i)
-{
-    for (int j = 0; j < 64; j++)
-    {
-        second[64 * i + j] = Random.Shared.Next(2, 10);
-    }
-}
-
-Vram.CopyHostToDevice(first, a.Ptr, first.Length * sizeof(double));
-Vram.CopyHostToDevice(second, b.Ptr, second.Length * sizeof(double));
-
-var kernel = new MultiplicationKernel(64, 16, 64);
-kernel.Invoke(new []{a, b, c});
-
-var third = new double[64 *64];
-Vram.CopyDeviceToHost(c.Ptr, third, 64 *64  * sizeof(double));
-
-
-Console.WriteLine("Transposed:");
-
-for (int i = 0; i < 64; ++i)
-{
-    for (int j = 0; j < 64; ++j)
-        Console.Write(third[64 * i + j] + " ");
-    Console.WriteLine();
-}
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })
 //     .Build();
