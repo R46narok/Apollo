@@ -72,23 +72,43 @@ using var a = new GpuBuffer(new BufferDescriptor
     ByteWidth = sizeof(double) * 1024
 });
 
+using var b = new GpuBuffer(new BufferDescriptor
+{
+    Usage = BufferUsage.GpuOnly,
+    Offset = 0,
+    Stride = 0,
+    ByteWidth = sizeof(double) * 1024
+});
+
 var first = new double[1024];
+var second = new double[1024];
 for (int i = 0; i < 1024; ++i)
 {
-    first[i] = Random.Shared.NextDouble();
+    first[i] = i;
 }
 
 Vram.CopyHostToDevice(first, a.Ptr, first.Length * sizeof(double));
 
-var kernel = new FunctionSigmoidGradientKernel();
-kernel.Invoke(new []{a});
+var kernel = new TransposeKernel(64, 16);
+kernel.Invoke(new []{a, b});
 
 var third = new double[1024];
-Vram.CopyDeviceToHost(a.Ptr, third, 1024 * sizeof(double));
+Vram.CopyDeviceToHost(b.Ptr, third, 1024 * sizeof(double));
 
-for (int i = 0; i < 1024; ++i)
+for (int i = 0; i < 64; ++i)
 {
-    Console.WriteLine(third[i]);
+    for (int j = 0; j < 16; ++j)
+        Console.Write(first[16 * i + j] + " ");
+    Console.WriteLine();
+}
+
+Console.WriteLine("Transposed:");
+
+for (int i = 0; i < 16; ++i)
+{
+    for (int j = 0; j < 64; ++j)
+        Console.Write(third[64 * i + j] + " ");
+    Console.WriteLine();
 }
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })

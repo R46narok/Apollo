@@ -3,7 +3,7 @@ project(Apollo.F1.Math.Cuda.Native CUDA)
 
 set(CMAKE_CUDA_STANDARD 17)
 
-add_library(Apollo.F1.Math.Cuda.Native SHARED src/pointwise_operations.cu src/pointwise_operations.cuh src/memory.cu src/memory.cuh src/functions_operations.cu src/functions_operations.cuh)
+add_library(Apollo.F1.Math.Cuda.Native SHARED src/pointwise_operations.cu src/pointwise_operations.cuh src/memory.cu src/memory.cuh src/functions_operations.cu src/functions_operations.cuh src/transpose.cu src/transpose.cuh)
 
 set_target_properties(Apollo.F1.Math.Cuda.Native PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
