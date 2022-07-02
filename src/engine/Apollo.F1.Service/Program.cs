@@ -1,11 +1,12 @@
-using System.Threading.Channels;
+using Apollo.F1.Math.Learning;
 using Apollo.F1.Math.Neural;
-using MathNet.Numerics.Distributions;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.Optimization;
-using MathNet.Numerics.Optimization.ObjectiveFunctions;
 
-var nn = new NeuralNetwork(new[] {784, 300, 10});
+var options = new NeuralNetworkOptions
+{
+    Layers = new []{ 784, 300, 10}
+};
+var nn = new NeuralNetwork(options);
 
 int samples = 500;
 
@@ -13,7 +14,6 @@ var x = Matrix<double>.Build.Dense(samples, 784);
 var y = Matrix<double>.Build.Dense(samples, 10);
 
 var prediction = Vector<double>.Build.Dense(784);
-var l = 0.0;
 
 using var rd = new StreamReader("mnist_train.csv");
 int line = -1;
@@ -34,11 +34,11 @@ while (!rd.EndOfStream && line <= samples)
 }
 
 Console.WriteLine($"Initial cost: {nn.ComputeCost(x, y)}");
-nn.Backpropagation(x, y);
 nn.GradientDescent(x, y);
-
 using var rd2 = new StreamReader("mnist_test.csv");
 line = -1;
+int correct = 0;
+int wrong = 0;
 while (!rd.EndOfStream)
 {
     line++;
@@ -48,14 +48,18 @@ while (!rd.EndOfStream)
         var dd = Array.ConvertAll(splits, double.Parse);
         prediction = Vector<double>.Build.Dense(784);
         var label = dd[0];
-        l = label;
         for (int i = 0; i < 784; ++i)
             prediction[i] = dd[1 + i] / 256.0;
         prediction = prediction.ToRowMatrix().InsertColumn(0, Vector<double>.Build.Dense(1, 1.0)).Row(0);
-        Console.WriteLine($"Label: {label}, Prediction: {nn.ForwardPropagation(prediction, null)}");
+        var result = nn.FeedForward(prediction, null);
+        var output = Math.Round(result[(int)label, 0]);
+        if (output == 0) wrong++;
+        else correct++;
     }
 
 }
+
+Console.WriteLine($"Correct: {correct}, Wrong: {wrong}");
 
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })

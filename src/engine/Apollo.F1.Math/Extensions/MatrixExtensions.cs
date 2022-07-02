@@ -4,42 +4,29 @@ using MathNet.Numerics.LinearAlgebra;
 namespace Apollo.F1.Math.Extensions;
 
 public static class MatrixExtensions
-{ 
-   public static void Apply(this Matrix<double> matrix, Func<double, double> function)
-   {
-      for (int i = 0; i < matrix.RowCount; ++i)
-      for (int j = 0; j < matrix.ColumnCount; ++j)
-         matrix[i, j] = function(matrix[i, j]);
-   }
+{
+    public static Matrix<double> InsertBiasColumn(this Matrix<double> matrix)
+    {
+        int rows = matrix.RowCount;
+        const double biasValue = 1.0;
 
-   public static Matrix<double> ElementwiseMultiplication(this Matrix<double> matrix, Matrix<double> other)
-   {
-      if (matrix.RowCount != other.RowCount || matrix.ColumnCount != other.ColumnCount)
-         throw new ArgumentException("Dimensions dont match");
+        matrix = matrix.InsertColumn(0,
+            Vector<double>.Build.Dense(rows, biasValue));
 
-      int rows = matrix.RowCount;
-      int cols = matrix.ColumnCount;
-      
-      var M = Matrix<double>.Build;
-      var result = M.Dense(rows, cols);
-      
-      for (int i = 0; i < rows; ++i)
-      for (int j = 0; j < cols; ++j)
-         result[i, j] = matrix[i, j] * other[i, j];
+        return matrix;
+    }
 
-      return result;
-   }
+    public static Matrix<double> RemoveBiasColumn(this Matrix<double> matrix)
+    {
+        return matrix.RemoveColumn(0);
+    }
 
-   public static Matrix<double> ElementwiseMultiplication(this Matrix<double> matrix, Vector<double> other)
-   {
-      int length = other.Count;
-
-      var M = Matrix<double>.Build;
-      var result = M.Dense(1, length);
-
-      for (int i = 0; i < length; ++i)
-         result[0, i] = matrix[0, i]* other[i];
-
-      return result;
-   }
+    public static Matrix<double> InsertBiasRow(this Matrix<double> matrix)
+    {
+        int columns = matrix.ColumnCount;
+        const double biasValue = 1.0;
+        matrix = matrix.InsertRow(0,
+                        Vector<double>.Build.Dense(columns, biasValue));
+        return matrix;
+    }
 }
