@@ -8,6 +8,20 @@ namespace Apollo.F1.Math.Cuda;
 
 public class GpuMatrixOperations : IMatrixOperations
 {
+    public Matrix Multiply(Matrix first, Matrix second)
+    {
+        var output = new Matrix(first.Rows, second.Columns);
+        Multiply(first, second, output);
+        return output;
+    }
+
+    public void Multiply(Matrix first, Matrix second, Matrix output)
+    {
+        var kernel = new MultiplicationKernel(first.Rows, first.Columns, second.Columns);
+        var buffers = ConvertToGpuBuffers(new[] {first.Buffer, second.Buffer, output.Buffer});
+        kernel.Invoke(buffers);
+    }
+    
     public Matrix Add(Matrix first, Matrix second)
     {
         EnsureEqualDimensions(first, second);

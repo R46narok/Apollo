@@ -13,4 +13,7 @@ public interface IMatrixOperations
 
    public Matrix Transpose(Matrix matrix);
    public void Transpose(Matrix matrix, Matrix output);
+   
+   public Matrix Multiply(Matrix first, Matrix second);
+   public void Multiply(Matrix first, Matrix second, Matrix output);
 }
