@@ -1,4 +1,7 @@
-﻿using Apollo.F1.Math.Common.LinearAlgebra;
+﻿using System.Runtime.InteropServices.ComTypes;
+using Apollo.F1.Math.Common.Buffers;
+using Apollo.F1.Math.Common.LinearAlgebra;
+using Apollo.F1.Math.Cuda.Buffers;
 using Apollo.F1.Math.Cuda.Common;
 using Apollo.F1.Math.Cuda.Kernels;
 
@@ -31,7 +34,19 @@ public class GpuMatrixOperations : IMatrixOperations
         var options = new ScalarKernelOptions(input, output, scalar);
         InvokeKernel<ScalarAdditionKernel, ScalarKernelOptions>(options);
     }
-    
+
+    public double Sum(Matrix matrix)
+    {
+        var output = new GpuBuffer(new BufferDescriptor {ByteWidth = sizeof(double)});
+        var options = new SumKernelOptions(matrix, output);
+        InvokeKernel<SumKernel, SumKernelOptions>(options);
+
+        var cpuArray = new double[1];
+        Vram.CopyDeviceToHost(output.Ptr, cpuArray, output.ByteWidth);
+
+        return cpuArray[0];
+    }
+
     public Matrix Multiply(double scalar)
     {
         throw new NotImplementedException();
@@ -129,8 +144,21 @@ public class GpuMatrixOperations : IMatrixOperations
     
     public void Subtract(Matrix first, Matrix second, Matrix output)
     {
-        var options = new PointwiseKernelOptions(first, second, output);
+        var options = new PointwiseKernelOptions(first, second, output, first.Rows * first.Columns);
         InvokeKernel<PointwiseSubtractionKernel, PointwiseKernelOptions>(options);
+    }
+
+    public Matrix Subtract(Matrix first, Matrix second, double scale)
+    {
+        var output = new Matrix(first.Rows, first.Columns);
+        Subtract(first, second, output, scale);
+        return output;
+    }
+    
+    public void Subtract(Matrix first, Matrix second, Matrix output, double scale)
+    {
+        var options = new PointwiseKernelOptions(first, second, output, scale);
+        InvokeKernel<PointwiseScaledSubtractionKernel, PointwiseKernelOptions>(options);
     }
     
     public Matrix PointwiseMultiply(Matrix first, Matrix second)

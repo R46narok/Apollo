@@ -22,6 +22,11 @@ public interface IMatrixOperations
 
    public Matrix Add(Matrix input, double scalar);
    public void Add(Matrix input, Matrix output, double scalar);
+
+   public double Sum(Matrix matrix);
+
+   public Matrix Subtract(Matrix first, Matrix second, double scale);
+   public void Subtract(Matrix first, Matrix second, Matrix output, double scale);
    
    public Matrix Multiply(double scalar);
    public void Multiply(double scalar, Matrix input, Matrix output);

@@ -13,7 +13,7 @@ public class FunctionSigmoidGradientKernel : KernelBase<FunctionKernelOptions>
     public override void Invoke(FunctionKernelOptions options)
     {
         var ptr = options.Output.Ptr;
-        var length = options.Output.ByteWidth;
+        var length = options.Output.ByteWidth / sizeof(double);
         
         FunctionSigmoidGradient(ptr, length);
     }

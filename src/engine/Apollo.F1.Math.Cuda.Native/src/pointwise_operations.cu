@@ -68,7 +68,24 @@ __global__ void pointwise_log_kernel(double* idata, double* odata, int length)
 
 void pointwise_log(void* input, void* output, int length)
 {
-    int thr_per_blk = 8;
+    int thr_per_blk = 256;
     int blk_in_grid = ceil((float)length / thr_per_blk);
     pointwise_log_kernel<<<thr_per_blk, blk_in_grid>>>((double*)input, (double*)output, length);
+}
+
+__global__ void pointwise_scaled_subtraction_kernel(double* first, double* second, double* output, int length, double scale)
+{
+    int id = blockDim.x * blockIdx.x + threadIdx.x;
+
+    // Make sure we do not go out of bounds
+    if (id < length)
+        output[id] = first[id] - scale * second[id];
+}
+
+void pointwise_scaled_subtraction(void* first, void* second, void* output, int length, double scale)
+{
+    int thr_per_blk = 256;
+    int blk_in_grid = ceil((float)length / thr_per_blk);
+    pointwise_scaled_subtraction_kernel<<<thr_per_blk, blk_in_grid>>>((double*)first, (double*)second, (double*)output,
+                                                                      length, scale);
 }

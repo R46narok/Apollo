@@ -8,7 +8,7 @@ add_library(Apollo.F1.Math.Cuda.Native SHARED src/pointwise_operations.cu src/po
 set_target_properties(Apollo.F1.Math.Cuda.Native PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(Apollo.F1.Math.Cuda.Native PRIVATE src)
-
+target_compile_options(Apollo.F1.Math.Cuda.Native PRIVATE -arch=sm_60)
 if(WIN32)
     # copy the .dll file to the same folder as the executable
     add_custom_command(

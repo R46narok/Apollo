@@ -38,6 +38,10 @@ public class Matrix : IEnumerable<double>
    public Matrix Subtract(Matrix other) => Operations.Subtract(this, other);
    public void Subtract(Matrix other, Matrix result) => Operations.Subtract(this, other, result);
 
+   public void Subtract(Matrix other, Matrix output, double scale) => Operations.Subtract(this, other, output, scale);
+   
+   public double Sum() => Operations.Sum(this);
+   
    public Matrix PointwiseMultiply(Matrix other) => Operations.PointwiseMultiply(this, other);
    public void PointwiseMultiply(Matrix other, Matrix output) => Operations.PointwiseMultiply(this, other, output);
 

@@ -14,7 +14,7 @@ public class NeuralNetwork
     private readonly double _distributionUpperBound;
     private readonly double _distributionLowerBound;
     
-    private Matrix[] _weights = null!;
+    public Matrix[] _weights = null!;
     private Matrix[] _derivatives = null!;
     
     public NeuralNetwork(NeuralNetworkOptions options)
@@ -149,23 +149,25 @@ public class NeuralNetwork
         var alpha = 0.25;
         var iterations = 2000;
 
-        /*for (int i = 0; i < iterations; ++i)
+        for (int i = 0; i < iterations; ++i)
         {
+            if (i == 1600)
+            {
+                int a = 3;
+            }
             var temp = new Matrix[_weights.Length];
 
             for (int j = 0; j < _weights.Length; ++j)
             {
                 var w = _weights[j];
-                temp[j] = Matrix.Build.Dense(w.RowCount, w.ColumnCount);
-                
-                for (int k = 0; k < w.RowCount; ++k)
-                for (int l = 0; l < w.ColumnCount; ++l)
-                    temp[j][k, l] = w[k, l] - alpha * _derivatives[j][k, l];
+                temp[j] = new Matrix(w.Rows, w.Columns);
+
+                w.Subtract(_derivatives[j], temp[j], alpha);
             }
             _weights = temp;
             Console.WriteLine($"Iteration {i}, Cost: {ComputeCost(x, y)}");
             Backpropagate(x, y);
-        }*/
+        }
     }
     
     public double ComputeCost(Matrix x, Matrix y)
@@ -182,12 +184,7 @@ public class NeuralNetwork
         
         var temp = yNegative.PointwiseMultiply(h.PointwiseLog());
         temp = temp.Subtract(yNegative.Add(1.0).PointwiseMultiply(hNegative.Add(1).PointwiseLog()));
-        
-        /*
-        var temp = y.Multiply(-1.0).PointwiseMultiply(h_x.PointwiseLog());
-        temp = temp - ((y.Multiply(-1.0) + 1).PointwiseMultiply((h_x.Multiply(-1) + 1).PointwiseLog()));
-        cost = temp.ColumnSums().Sum();
-        cost /= (double)m;*/
+        cost = temp.Sum();
         
         return cost + (0.25/(2 * m));
     }

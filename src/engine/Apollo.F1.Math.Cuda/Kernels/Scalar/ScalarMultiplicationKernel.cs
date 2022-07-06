@@ -15,7 +15,7 @@ public class ScalarMultiplicationKernel : KernelBase<ScalarKernelOptions>
     {
         var inputBuffer = options.Input.Ptr;
         var outputBuffer = options.Output.Ptr;
-        var length = options.Output.ByteWidth;
+        var length = options.Output.ByteWidth / sizeof(double);
         var scalar = options.Scalar;
 
         MultiplyScalar(inputBuffer, outputBuffer, length, scalar);

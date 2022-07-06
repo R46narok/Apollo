@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Drawing;
+using System.Runtime.InteropServices;
 using Apollo.F1.Math.Common.Buffers;
 using Apollo.F1.Math.Cuda.Common;
 
@@ -14,7 +15,7 @@ public class ScalarAdditionKernel : KernelBase<ScalarKernelOptions>
     {
         var inputBuffer = options.Input.Ptr;
         var outputBuffer = options.Output.Ptr;
-        var length = options.Output.ByteWidth;
+        var length = options.Output.ByteWidth / sizeof(double);
         var scalar = options.Scalar;
 
         AddScalar(inputBuffer, outputBuffer, length, scalar);

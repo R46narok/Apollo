@@ -11,6 +11,8 @@ extern "C"
    __declspec(dllexport) void __cdecl pointwise_subtraction(void* first, void* second, void* output, int length);
    __declspec(dllexport) void __cdecl pointwise_multiplication(void* first, void* second, void* output, int length);
    __declspec(dllexport) void __cdecl pointwise_log(void* input, void* output, int length);
+
+   __declspec(dllexport) void __cdecl pointwise_scaled_subtraction(void* first, void* second, void* output, int length, double scale);
 };
 
 #endif //APOLLO_F1_MATH_CUDA_NATIVE_POINTWISE_OPERATIONS_CUH

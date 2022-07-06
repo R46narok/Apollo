@@ -8,12 +8,14 @@ public class PointwiseKernelOptions : KernelOptionsBase
 {
     public GpuBuffer FirstOperand { get; set; }
     public GpuBuffer SecondOperand { get; set; }
+    public double Scale { get; set; }
 
-    public PointwiseKernelOptions(Matrix first, Matrix second, Matrix output)
+    public PointwiseKernelOptions(Matrix first, Matrix second, Matrix output, double scale = 1.0)
     {
         FirstOperand = first.Buffer as GpuBuffer;
         SecondOperand = second.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;
+        Scale = scale;
     }
 }
 

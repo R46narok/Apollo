@@ -14,7 +14,7 @@ public class FunctionSigmoidKernel : KernelBase<FunctionKernelOptions>
     public override void Invoke(FunctionKernelOptions options)
     {
         var ptr = options.Output.Ptr;
-        var length = options.Output.ByteWidth;
+        var length = options.Output.ByteWidth / sizeof(double);
         
         FunctionSigmoid(ptr, length);
     }
