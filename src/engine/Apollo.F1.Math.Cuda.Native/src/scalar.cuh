@@ -1,14 +1,13 @@
-//
-// Created by Acer on 6.7.2022 г..
-//
-
 #ifndef APOLLO_F1_MATH_CUDA_NATIVE_SCALAR_CUH
 #define APOLLO_F1_MATH_CUDA_NATIVE_SCALAR_CUH
 
-extern "C"
-{
-    __declspec(dllexport) void __cdecl add_scalar(void* input, void* output, int length, double scalar);
-    __declspec(dllexport) void __cdecl subtract_scalar(void* input, void* output, int length, double scalar);
-}
+#include "core.cuh"
+
+F1_EXTERN_BEGIN
+
+F1_EXPORT void F1_API add_scalar(void* pInput, void* pOutput, int iLength, double scalar);
+F1_EXPORT void F1_API subtract_scalar(void* pInput, void* pOutput, int iLength, double scalar);
+
+F1_EXTERN_END
 
 #endif //APOLLO_F1_MATH_CUDA_NATIVE_SCALAR_CUH

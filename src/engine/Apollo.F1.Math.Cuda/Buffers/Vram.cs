@@ -7,10 +7,10 @@ namespace Apollo.F1.Math.Cuda.Buffers;
 
 public static class Vram
 {
-    [DllImport(Dll.Name, EntryPoint = "allocate_vram", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(Dll.Name, EntryPoint = "allocate_global_memory", CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr Malloc(int bytes);
 
-    [DllImport(Dll.Name, EntryPoint = "destroy_vram", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(Dll.Name, EntryPoint = "destroy_global_memory", CallingConvention = CallingConvention.Cdecl)]
     public static extern void Free(IntPtr ptr);
 
     [DllImport(Dll.Name, EntryPoint = "copy_host_to_device", CallingConvention = CallingConvention.Cdecl)]

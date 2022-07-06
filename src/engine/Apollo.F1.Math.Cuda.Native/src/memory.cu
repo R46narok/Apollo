@@ -1,39 +1,33 @@
-//
-// Created by Acer on 2.7.2022 г..
-//
-
 #include "memory.cuh"
 
-void* allocate_vram(int bytes)
+void* allocate_global_memory(int iBytes)
 {
     void* ptr;
-    cudaMalloc(&ptr, bytes);
+    cudaMalloc(&ptr, iBytes);
     return ptr;
 }
 
-void destroy_vram(void* ptr)
+void destroy_global_memory(void* ptr)
 {
-    if (ptr != nullptr)
-        cudaFree(ptr);
+    if (ptr != nullptr) cudaFree(ptr);
 }
 
-void copy_host_to_device(void* src, void* dst, int length)
+void copy_host_to_device(void* pSrc, void* pDst, int iLength)
 {
-    cudaMemcpy(dst, src, length, cudaMemcpyHostToDevice);
+    cudaMemcpy(pDst, pSrc, iLength, cudaMemcpyHostToDevice);
 }
 
-void copy_device_to_host(void* src, void* dst, int length)
+void copy_device_to_host(void* pSrc, void* pDst, int iLength)
 {
-    cudaMemcpy(dst, src, length, cudaMemcpyDeviceToHost);
+    cudaMemcpy(pDst, pSrc, iLength, cudaMemcpyDeviceToHost);
 }
 
-void copy_device_to_device(void* src, void* dst, int length)
+void copy_device_to_device(void* pSrc, void* pDst, int iLength)
 {
-    cudaMemcpy(dst, src, length, cudaMemcpyDeviceToDevice);
+    cudaMemcpy(pDst, pSrc, iLength, cudaMemcpyDeviceToDevice);
 }
 
-
-void device_memset(void* dst, int length, int value)
+void device_memset(void* pDst, int iLength, int value)
 {
-    cudaMemset(dst, value, length);
+    cudaMemset(pDst, value, iLength);
 }

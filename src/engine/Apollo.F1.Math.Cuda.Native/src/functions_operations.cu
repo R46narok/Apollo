@@ -1,41 +1,37 @@
-//
-// Created by Acer on 2.7.2022 г..
-//
-
 #include "functions_operations.cuh"
-#include "math.h"
+#include <cmath>
 
-__global__ void function_sigmoid_kernel(double* ptr, int length)
+__global__ void function_sigmoid_kernel(double* pElements, int iLength)
 {
     int id = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (id < length)
-        ptr[id] = 1.0 / (1 + exp(-1.0 * ptr[id]));
+    if (id < iLength)
+        pElements[id] = 1.0 / (1 + exp(-1.0 * pElements[id]));
 }
 
-void function_sigmoid(void* ptr, int length)
+void function_sigmoid(void* pElements, int iLength)
 {
     int thr_per_blk = 256;
-    int blk_in_grid = ceil(float(length) / thr_per_blk);
+    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
 
-    function_sigmoid_kernel<<<thr_per_blk, blk_in_grid>>>((double*)ptr, length);
+    function_sigmoid_kernel<<<thr_per_blk, blk_in_grid>>>((double*)pElements, iLength);
 }
 
-__global__ void function_sigmoid_gradient_kernel(double* ptr, int length)
+__global__ void function_sigmoid_gradient_kernel(double* pElements, int iLength)
 {
     int id = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (id < length)
+    if (id < iLength)
     {
-        double sigmoid = 1.0 / (1 + exp(-1.0 * ptr[id]));
-        ptr[id] = sigmoid * (1 - sigmoid);
+        double sigmoid = 1.0 / (1 + exp(-1.0 * pElements[id]));
+        pElements[id] = sigmoid * (1 - sigmoid);
     }
 }
 
-void function_sigmoid_gradient(void* ptr, int length)
+void function_sigmoid_gradient(void* pElements, int iLength)
 {
     int thr_per_blk = 256;
-    int blk_in_grid = ceil(float(length) / thr_per_blk);
+    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
 
-    function_sigmoid_kernel<<<thr_per_blk, blk_in_grid>>>((double*)ptr, length);
+    function_sigmoid_gradient_kernel<<<thr_per_blk, blk_in_grid>>>((double*)pElements, iLength);
 }

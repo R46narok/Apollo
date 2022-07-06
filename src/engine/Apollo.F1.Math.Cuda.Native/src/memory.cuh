@@ -1,23 +1,44 @@
-//
-// Created by Acer on 2.7.2022 г..
-//
-
 #ifndef APOLLO_F1_MATH_CUDA_NATIVE_MEMORY_CUH
 #define APOLLO_F1_MATH_CUDA_NATIVE_MEMORY_CUH
 
-extern "C"
-{
-    /// Host instruction to allocate memory on the graphics device (VRAM).
-    /// \param bytes Length of the buffer in bytes
-    /// \return A pointer to GPU global memory
-     __declspec(dllexport) void* __cdecl allocate_vram(int bytes);
-     __declspec(dllexport) void __cdecl destroy_vram(void* ptr);
+#include "core.cuh"
 
-     __declspec(dllexport) void __cdecl copy_host_to_device(void* src, void* dst, int length);
-     __declspec(dllexport) void __cdecl copy_device_to_host(void* src, void* dst, int length);
-     __declspec(dllexport) void __cdecl copy_device_to_device(void* src, void* dst, int length);
+F1_EXTERN_BEGIN
 
-     __declspec(dllexport) void __cdecl device_memset(void* dst, int length, int value);
-};
+/// Host instruction to allocate global memory on the CUDA device. Undefined
+/// behaviours in out of memory situations.
+/// \param iBytes Byte width of the buffer
+/// \return A pointer to the allocated memory on the VRAM
+F1_EXPORT void* F1_API allocate_global_memory(int iBytes);
+
+/// Host instruction to free memory from the VRAM
+/// \param ptr A valid pointer to GPU memory
+F1_EXPORT void F1_API destroy_global_memory(void* ptr);
+
+/// Host instruction to copy memory from CPU-access area to GPU-access area
+/// \param pSrc A valid pointer to a RAM block to copy from
+/// \param pDst A valid pointer to a VRAM block to copy to
+/// \param iLength Bytes to copy
+F1_EXPORT void F1_API copy_host_to_device(void* pSrc, void* pDst, int iLength);
+
+/// Host instruction to copy memory from GPU-access area to CPU-access area
+/// \param pSrc A valid pointer to a VRAM block to copy from
+/// \param pDst A valid pointer to a RAM block to copy to
+/// \param iLength Bytes to copy
+F1_EXPORT void F1_API copy_device_to_host(void* pSrc, void* pDst, int iLength);
+
+/// Host instruction to copy memory from GPU-access area to GPU-access area
+/// \param pSrc A valid pointer to a VRAM block to copy from
+/// \param dst A valid pointer to a VRAM block to copy to
+/// \param iLength Bytes to copy
+F1_EXPORT void F1_API copy_device_to_device(void* pSrc, void* pDst, int iLength);
+
+/// Host instruction every byte on a GPU-access area to a specific value
+/// \param pDst A valid pointer to a VRAM block
+/// \param iLength Bytes to set
+/// \param value Value to be set
+F1_EXPORT void device_memset(void* pDst, int iLength, int value);
+
+F1_EXTERN_END
 
 #endif //APOLLO_F1_MATH_CUDA_NATIVE_MEMORY_CUH
