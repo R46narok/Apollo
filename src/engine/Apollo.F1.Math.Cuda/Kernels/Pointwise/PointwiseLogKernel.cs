@@ -4,25 +4,18 @@ using Apollo.F1.Math.Cuda.Common;
 
 namespace Apollo.F1.Math.Cuda.Kernels;
 
-[KernelEntryPoint("pointwise_addition")]
-public class PointwiseLogKernel : KernelBase
+[KernelEntryPoint("pointwise_log")]
+public class PointwiseLogKernel : KernelBase<PointwiseOperationKernelOptions>
 {
     [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "pointwise_log")]
     private static extern void PointwiseLog(IntPtr input, IntPtr output, int length);
     
-    public override void Invoke(GpuBuffer[] buffers)
+    public override void Invoke(PointwiseOperationKernelOptions options)
     {
-        EnsureBufferLength(buffers);
-
-        var input = buffers[0].Ptr;
-        var output = buffers[1].Ptr;
-        var length = buffers[0].ByteWidth;
-        
+        var input = options.Operand.Ptr;
+        var output = options.Output.Ptr;
+        var length = options.Output.ByteWidth;
+            
         PointwiseLog(input, output, length);
-    }
-
-    private void EnsureBufferLength(GpuBuffer[] buffers)
-    {
-        if (buffers.Length != 2) throw new ArgumentException();
     }
 }

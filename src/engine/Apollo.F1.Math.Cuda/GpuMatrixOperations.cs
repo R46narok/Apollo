@@ -1,6 +1,4 @@
-﻿using Apollo.F1.Math.Common.Buffers;
-using Apollo.F1.Math.Common.LinearAlgebra;
-using Apollo.F1.Math.Cuda.Buffers;
+﻿using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Cuda.Common;
 using Apollo.F1.Math.Cuda.Kernels;
 
@@ -17,11 +15,23 @@ public class GpuMatrixOperations : IMatrixOperations
 
     public void Multiply(Matrix first, Matrix second, Matrix output)
     {
-        var kernel = new MultiplicationKernel(first.Rows, first.Columns, second.Columns);
-        var buffers = ConvertToGpuBuffers(new[] {first.Buffer, second.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new MultiplicationKernelOptions(first, second, output);
+        InvokeKernel<MultiplicationKernel, MultiplicationKernelOptions>(options);
     }
 
+    public Matrix Add(Matrix input, double scalar)
+    {
+        var output = new Matrix(input.Rows, input.Columns);
+        Add(input, output, scalar);
+        return output;
+    }
+
+    public void Add(Matrix input, Matrix output, double scalar)
+    {
+        var options = new ScalarKernelOptions(input, output, scalar);
+        InvokeKernel<ScalarAdditionKernel, ScalarKernelOptions>(options);
+    }
+    
     public Matrix Multiply(double scalar)
     {
         throw new NotImplementedException();
@@ -29,37 +39,39 @@ public class GpuMatrixOperations : IMatrixOperations
 
     public void Multiply(double scalar, Matrix input, Matrix output)
     {
-        var kernel = new ScalarMultiplicationKernel(scalar);
-        var buffers = ConvertToGpuBuffers(new[] {input.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new ScalarKernelOptions(input, output, scalar);
+        InvokeKernel<ScalarMultiplicationKernel, ScalarKernelOptions>(options);
     }
 
-    public void PointwiseLog(Matrix matrix)
+    public Matrix PointwiseLog(Matrix matrix)
     {
-        var kernel = new PointwiseLogKernel();
-        var buffers = ConvertToGpuBuffers(new[] {matrix.Buffer, matrix.Buffer});
-        kernel.Invoke(buffers);
+        var output = new Matrix(matrix.Rows, matrix.Columns);
+        PointwiseLog(matrix, output);
+        return output;
+    }
+    
+    public void PointwiseLog(Matrix matrix, Matrix output)
+    {
+        var options = new PointwiseOperationKernelOptions(matrix, output);
+        InvokeKernel<PointwiseLogKernel, PointwiseOperationKernelOptions>(options);
     }
     
     public void ApplySigmoid(Matrix matrix)
     {
-        var kernel = new FunctionSigmoidKernel();
-        var buffers = ConvertToGpuBuffers(new[] {matrix.Buffer});
-        kernel.Invoke(buffers);
+        var options = new FunctionKernelOptions(matrix, matrix);
+        InvokeKernel<FunctionSigmoidKernel, FunctionKernelOptions>(options);
     }
 
     public void ApplySigmoidGradient(Matrix matrix)
     {
-        var kernel = new FunctionSigmoidGradientKernel();
-        var buffers = ConvertToGpuBuffers(new[] {matrix.Buffer});
-        kernel.Invoke(buffers);
+        var options = new FunctionKernelOptions(matrix, matrix);
+        InvokeKernel<FunctionSigmoidGradientKernel, FunctionKernelOptions>(options);
     }
 
     public void InsertColumn(Matrix matrix, Matrix output, double value)
     {
-        var kernel = new InsertColumnKernel(matrix.Rows, matrix.Columns, value);
-        var buffers = ConvertToGpuBuffers(new[] {matrix.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new InsertKernelOptions(matrix, output, value);
+        InvokeKernel<InsertColumnKernel, InsertKernelOptions>(options);
     }
 
     public Matrix InsertColumn(Matrix matrix, double value)
@@ -69,26 +81,23 @@ public class GpuMatrixOperations : IMatrixOperations
         return output;
     }
     
-    
     public void RemoveColumn(Matrix matrix, Matrix output)
     {
-        var kernel = new RemoveColumnKernel(matrix.Rows, matrix.Columns);
-        var buffers = ConvertToGpuBuffers(new[] {matrix.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new RemoveKernelOptions(matrix, output, 0);
+        InvokeKernel<RemoveColumnKernel, RemoveKernelOptions>(options);
     }
 
     public Matrix RemoveColumn(Matrix matrix)
     {
         var output = new Matrix(matrix.Rows, matrix.Columns - 1);
-        RemoveColumn(matrix, output); 
+        RemoveColumn(matrix, output);
         return output;
     }
     
     public void InsertRow(Matrix matrix, Matrix output, double value)
     {
-        var kernel = new InsertRowKernel(matrix.Rows, matrix.Columns, value);
-        var buffers = ConvertToGpuBuffers(new[] {matrix.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new InsertKernelOptions(matrix, output, value);
+        InvokeKernel<InsertRowKernel, InsertKernelOptions>(options);
     }
 
     public Matrix InsertRow(Matrix matrix, double value)
@@ -97,88 +106,64 @@ public class GpuMatrixOperations : IMatrixOperations
         InsertRow(matrix, output, value);
         return output;
     }
+    
     public Matrix Add(Matrix first, Matrix second)
     {
-        EnsureEqualDimensions(first, second);
-        
         var output = new Matrix(first.Rows, first.Columns);
         Add(first, second, output);
-        
         return output;
     }
 
     public void Add(Matrix first, Matrix second, Matrix output)
     {
-        EnsureEqualDimensions(first, second);
-        
-        var kernel = new PointwiseAdditionKernel();
-        var buffers = ConvertToGpuBuffers(new[] {first.Buffer, second.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new PointwiseKernelOptions(first, second, output);
+        InvokeKernel<PointwiseAdditionKernel, PointwiseKernelOptions>(options);
     }
     
     public Matrix Subtract(Matrix first, Matrix second)
     {
-        EnsureEqualDimensions(first, second);
-        
         var output = new Matrix(first.Rows, first.Columns);
         Subtract(first, second, output);
-        
         return output;
     }
     
     public void Subtract(Matrix first, Matrix second, Matrix output)
     {
-        EnsureEqualDimensions(first, second);
-        
-        var kernel = new PointwiseSubtractionKernel();
-        var buffers = ConvertToGpuBuffers(new[] {first.Buffer, second.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new PointwiseKernelOptions(first, second, output);
+        InvokeKernel<PointwiseSubtractionKernel, PointwiseKernelOptions>(options);
     }
     
     public Matrix PointwiseMultiply(Matrix first, Matrix second)
     {
-        EnsureEqualDimensions(first, second);
-        
         var output = new Matrix(first.Rows, first.Columns);
         PointwiseMultiply(first, second, output);
-        
         return output;
     }
     
     public void PointwiseMultiply(Matrix first, Matrix second, Matrix output)
     {
-        EnsureEqualDimensions(first, second);
-        
-        var kernel = new PointwiseMultiplicationKernel();
-        var buffers = ConvertToGpuBuffers(new[] {first.Buffer, second.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+       var options = new PointwiseKernelOptions(first, second, output);
+       InvokeKernel<PointwiseMultiplicationKernel, PointwiseKernelOptions>(options);
     }
 
     public Matrix Transpose(Matrix matrix)
     {
         var output = new Matrix(matrix.Columns, matrix.Rows);
         Transpose(matrix, output);
-
         return output;
     }
 
     public void Transpose(Matrix matrix, Matrix output)
     {
-        var kernel = new TransposeKernel(matrix.Rows, matrix.Columns);
-        var buffers = ConvertToGpuBuffers(new[] { matrix.Buffer, output.Buffer});
-        kernel.Invoke(buffers);
+        var options = new TransposeKernelOptions(matrix, output);
+        InvokeKernel<TransposeKernel, TransposeKernelOptions>(options);
     }
 
-    private void EnsureEqualDimensions(Matrix first, Matrix second)
+    private void InvokeKernel<TKernel, TOptions>(TOptions options)
+        where TOptions : KernelOptionsBase
+        where TKernel : KernelBase<TOptions>, new()
     {
-        if (!(first.Rows == second.Rows && first.Columns == second.Columns))
-        {
-            throw new ArgumentException();
-        }
-    }
-
-    private GpuBuffer[] ConvertToGpuBuffers(IBuffer[] buffers)
-    {
-        return Array.ConvertAll(buffers, b => (GpuBuffer) b);
+        var kernel = new TKernel();
+        kernel.Invoke(options);
     }
 }

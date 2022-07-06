@@ -4,35 +4,21 @@ using Apollo.F1.Math.Cuda.Common;
 
 namespace Apollo.F1.Math.Cuda.Kernels;
 
-[KernelEntryPoint("insert_column")]
-public class InsertRowKernel : KernelBase
+
+[KernelEntryPoint("insert_row")]
+public class InsertRowKernel : KernelBase<InsertKernelOptions>
 {
     [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "insert_row")]
-    private static extern void InsertRow(IntPtr src, IntPtr dst, int rows, int columns, double value);
+    private static extern void InsertRow(IntPtr input, IntPtr output, int rows, int columns, double value);
 
-    private readonly int _rows;
-    private readonly int _columns;
-    private readonly double _value;
-    
-    public InsertRowKernel(int rows, int columns, double value)
+    public override void Invoke(InsertKernelOptions options)
     {
-        _rows = rows;
-        _columns = columns;
-        _value = value;
-    }
-    
-    public override void Invoke(GpuBuffer[] buffers)
-    {
-        EnsureBufferLength(buffers);
-
-        var src = buffers[0].Ptr;
-        var dst = buffers[1].Ptr;
-
-        InsertRow(src, dst, _rows, _columns, _value);
-    }
-
-    private void EnsureBufferLength(GpuBuffer[] buffers)
-    {
-        if (buffers.Length != 2) throw new ArgumentException();
+        var input = options.Input.Ptr;
+        var output = options.Output.Ptr;
+        var rows = options.Rows;
+        var columns = options.Columns;
+        var value = options.Value;
+        
+        InsertRow(input, output, rows, columns, value);
     }
 }

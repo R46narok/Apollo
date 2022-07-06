@@ -1,35 +1,38 @@
 ﻿using System.Runtime.InteropServices;
+using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Cuda.Buffers;
 using Apollo.F1.Math.Cuda.Common;
 
 namespace Apollo.F1.Math.Cuda.Kernels;
 
-public class TransposeKernel : KernelBase
+public class TransposeKernelOptions : KernelOptionsBase
+{
+    public GpuBuffer Input { get; set; }
+    public int Rows { get; set; }
+    public int Columns { get; set; }
+
+    public TransposeKernelOptions(Matrix input, Matrix output)
+    {
+        Input = input.Buffer as GpuBuffer;
+        Output = output.Buffer as GpuBuffer;
+
+        Rows = input.Rows;
+        Columns = input.Columns;
+    }
+}
+
+public class TransposeKernel : KernelBase<TransposeKernelOptions>
 {
     [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "transpose")]
     private static extern void Transpose(IntPtr input, IntPtr output, int rows, int columns);
 
-    private readonly int _rows;
-    private readonly int _columns;
-    
-    public TransposeKernel(int rows, int columns)
+    public override void Invoke(TransposeKernelOptions options)
     {
-        _rows = rows;
-        _columns = columns;
-    }
-    
-    public override void Invoke(GpuBuffer[] buffers)
-    {
-        EnsureBufferLength(buffers);
-
-        var input = buffers[0].Ptr;
-        var output = buffers[1].Ptr;
+        var input = options.Input.Ptr;
+        var output = options.Output.Ptr;
+        var rows = options.Rows;
+        var columns = options.Columns;
         
-        Transpose(input, output, _rows, _columns);
-    }
-
-    private void EnsureBufferLength(GpuBuffer[] buffers)
-    {
-        if (buffers.Length != 2) throw new ArgumentException();
+        Transpose(input, output, rows, columns);
     }
 }

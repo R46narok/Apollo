@@ -173,8 +173,15 @@ public class NeuralNetwork
         double cost = 0.0;
         int m = x.Rows;
 
-        var h_x = FeedForward(x);
+        var h = FeedForward(x);
+
+        var yNegative = new Matrix(y.Rows, y.Columns);
+        var hNegative = new Matrix(h.Rows, h.Columns); 
+        y.Multiply(-1.0, yNegative);
+        h.Multiply(-1.0, hNegative);
         
+        var temp = yNegative.PointwiseMultiply(h.PointwiseLog());
+        temp = temp.Subtract(yNegative.Add(1.0).PointwiseMultiply(hNegative.Add(1).PointwiseLog()));
         
         /*
         var temp = y.Multiply(-1.0).PointwiseMultiply(h_x.PointwiseLog());

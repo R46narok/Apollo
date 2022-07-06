@@ -96,8 +96,11 @@ for (int i = 0; i < 15; ++i)
 }
 y.Buffer.Upload(cpuY);
 
+x = x.InsertColumn(1.0);
+
 var st = Stopwatch.StartNew();
-nn.Backpropagate(x.InsertColumn(1.0), y);
+Console.WriteLine(nn.ComputeCost(x, y));
+nn.Backpropagate(x, y);
 
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })

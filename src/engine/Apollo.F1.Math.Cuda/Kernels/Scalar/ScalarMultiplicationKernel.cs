@@ -4,31 +4,20 @@ using Apollo.F1.Math.Cuda.Common;
 
 namespace Apollo.F1.Math.Cuda.Kernels;
 
-public class ScalarMultiplicationKernel : KernelBase
+
+[KernelEntryPoint("multiply_scalar")]
+public class ScalarMultiplicationKernel : KernelBase<ScalarKernelOptions>
 {
-     [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "multiply_scalar")]
-     private static extern void MultiplyScalar(IntPtr input, IntPtr output, int length, double scalar);
-
-     private readonly double _scalar;
-
-     public ScalarMultiplicationKernel(double scalar)
-     {
-         _scalar = scalar;
-     }
-
-     public override void Invoke(GpuBuffer[] buffers)
-     {
-         EnsureBufferLength(buffers);
+    [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "multiply_scalar")]
+    private static extern void MultiplyScalar(IntPtr input, IntPtr output, int length, double scalar);
     
-         var input = buffers[0].Ptr;
-         var output = buffers[1].Ptr;
-         var length = buffers[0].ByteWidth;
-         
-         MultiplyScalar(input, output, length, _scalar);
-     }
-    
-     private void EnsureBufferLength(GpuBuffer[] buffers)
-     {
-         if (buffers.Length != 2) throw new ArgumentException();
-     }
+    public override void Invoke(ScalarKernelOptions options)
+    {
+        var inputBuffer = options.Input.Ptr;
+        var outputBuffer = options.Output.Ptr;
+        var length = options.Output.ByteWidth;
+        var scalar = options.Scalar;
+
+        MultiplyScalar(inputBuffer, outputBuffer, length, scalar);
+    }
 }

@@ -57,8 +57,11 @@ public class Matrix : IEnumerable<double>
 
    public void Multiply(double scalar) => Operations.Multiply(scalar, this, this);
    public void Multiply(double scalar, Matrix output) => Operations.Multiply(scalar, this, output);
-   public void PointwiseLog() => Operations.PointwiseLog(this);
+   public void PointwiseLog(Matrix output) => Operations.PointwiseLog(this, output);
+   public Matrix PointwiseLog() => Operations.PointwiseLog(this);
 
+   public Matrix Add(double scalar) => Operations.Add(this, scalar);
+   
    public void ApplySigmoid() => Operations.ApplySigmoid(this);
    public void ApplySigmoidGradient() => Operations.ApplySigmoidGradient(this);
 

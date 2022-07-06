@@ -17,7 +17,11 @@ public interface IMatrixOperations
    public Matrix Multiply(Matrix first, Matrix second);
    public void Multiply(Matrix first, Matrix second, Matrix output);
 
-   public void PointwiseLog(Matrix matrix);
+   public void PointwiseLog(Matrix matrix, Matrix output);
+   public Matrix PointwiseLog(Matrix matrix);
+
+   public Matrix Add(Matrix input, double scalar);
+   public void Add(Matrix input, Matrix output, double scalar);
    
    public Matrix Multiply(double scalar);
    public void Multiply(double scalar, Matrix input, Matrix output);
