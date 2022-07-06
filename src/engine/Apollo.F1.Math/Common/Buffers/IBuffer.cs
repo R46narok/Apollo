@@ -9,15 +9,24 @@ public interface IBuffer
 
     public void Upload(double[] data);
     public double[]? Read();
+    public void Reset();
+
+    public IntPtr Ptr { get; }
 }
 
 public class BufferBase : IBuffer
 {
+     public IntPtr Ptr { get; protected set; }
      public int Offset { get; protected set; }
      public int Stride { get; protected set; }
      public int ByteWidth { get; protected set; }
      public BufferUsage Usage { get; protected set; }
      public virtual void Upload(double[] data)
+     {
+         
+     }
+
+     public virtual void Reset()
      {
          
      }

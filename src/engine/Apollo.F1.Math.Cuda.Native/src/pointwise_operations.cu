@@ -57,3 +57,18 @@ void pointwise_multiplication(void* first, void* second, void* output, int lengt
     pointwise_multiplication_kernel<<<thr_per_blk, blk_in_grid>>>((double *) first, (double *) second, (double *) output,
                                                                length);
 }
+
+__global__ void pointwise_log_kernel(double* idata, double* odata, int length)
+{
+    int id = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if (id < length)
+        odata[id] = log(idata[id]);
+}
+
+void pointwise_log(void* input, void* output, int length)
+{
+    int thr_per_blk = 8;
+    int blk_in_grid = ceil((float)length / thr_per_blk);
+    pointwise_log_kernel<<<thr_per_blk, blk_in_grid>>>((double*)input, (double*)output, length);
+}

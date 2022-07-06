@@ -3,4 +3,5 @@
 public interface IBufferFactory
 {
     IBuffer Allocate(BufferDescriptor descriptor);
+    IBuffer TakeOwnership(IntPtr ptr, BufferDescriptor descriptor);
 }

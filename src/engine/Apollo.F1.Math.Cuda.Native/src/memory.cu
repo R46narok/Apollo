@@ -26,3 +26,14 @@ void copy_device_to_host(void* src, void* dst, int length)
 {
     cudaMemcpy(dst, src, length, cudaMemcpyDeviceToHost);
 }
+
+void copy_device_to_device(void* src, void* dst, int length)
+{
+    cudaMemcpy(dst, src, length, cudaMemcpyDeviceToDevice);
+}
+
+
+void device_memset(void* dst, int length, int value)
+{
+    cudaMemset(dst, value, length);
+}

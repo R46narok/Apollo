@@ -4,7 +4,7 @@
 
 #include "multiplication.cuh"
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 8
 
 __global__ void multiply_kernel(double* first, double* second, double* output, int m, int n, int k)
 {
@@ -30,4 +30,21 @@ void multiply(void* first, void* second, void* output, int m, int n, int k)
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 
     multiply_kernel<<<dimGrid, dimBlock>>>((double*)first, (double*)second, (double*)output, m, n, k);
+}
+
+__global__ void multiply_scalar_kernel(double* odata, double* idata, int length, double scalar)
+{
+    int id = blockDim.x * blockIdx.x + threadIdx.x;
+
+    // Make sure we do not go out of bounds
+    if (id < length)
+        odata[id] = idata[id] * scalar;
+}
+
+void multiply_scalar(void* input, void* output, int length, double scalar)
+{
+    int thr_per_blk = 256;
+    int blk_in_grid = ceil(float(length) / thr_per_blk);
+
+    multiply_scalar_kernel<<<thr_per_blk, blk_in_grid>>>((double *) output, (double *) input, length, scalar);
 }

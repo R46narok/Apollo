@@ -18,5 +18,15 @@ public static class Vram
     
     [DllImport(Dll.Name, EntryPoint = "copy_device_to_host", CallingConvention = CallingConvention.Cdecl)]
     public static extern void CopyDeviceToHost(IntPtr src, [MarshalAs(UnmanagedType.LPArray)] double[] dst, int length);
-        
+
+    [DllImport(Dll.Name, EntryPoint = "copy_device_to_device", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void CopyDeviceToDevice(IntPtr src, IntPtr dst, int length);
+
+    [DllImport(Dll.Name, EntryPoint = "device_memset", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void Memset(IntPtr dst, int length, int value);
+    
+    public static IntPtr OffsetOf(IntPtr ptr, int offset)
+    {
+        return ptr + offset;
+    }
 }

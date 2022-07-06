@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Cuda;
 using Apollo.F1.Math.Cuda.Buffers;
+using Apollo.F1.Math.Learning;
+using Apollo.F1.Math.Neural;
 
 /*var options = new NeuralNetworkOptions
 {
@@ -62,6 +65,39 @@ while (!rd.EndOfStream)
 Console.WriteLine($"Correct: {correct}, Wrong: {wrong}");*/
 Matrix.BufferFactory = new GpuBufferFactory();
 Matrix.Operations = new GpuMatrixOperations();
+
+var options = new NeuralNetworkOptions
+{
+    Layers = new []{ 784, 300, 10}
+};
+var nn = new NeuralNetwork(options);
+
+var x = new Matrix(15, 784);
+var cpu = new double[15 * 784];
+
+for (int i = 0; i < 15; ++i)
+{
+    for (int j = 0; j < 784; ++j)
+    {
+        var axis = (double)(Random.Shared.Next(0, 2) * 2 - 1);
+        var distribution = Random.Shared.NextDouble();
+        var value = axis * System.Math.Sqrt(6) * distribution;
+        cpu[784 * i + j] = value;
+    }
+}
+x.Buffer.Upload(cpu);
+
+var y = new Matrix(15, 10);
+var cpuY = new double[15 * 10];
+for (int i = 0; i < 15; ++i)
+{
+    var idx = Random.Shared.Next(0, 10);
+    cpuY[10 * i + idx] = 1.0;
+}
+y.Buffer.Upload(cpuY);
+
+var st = Stopwatch.StartNew();
+nn.Backpropagate(x.InsertColumn(1.0), y);
 
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })

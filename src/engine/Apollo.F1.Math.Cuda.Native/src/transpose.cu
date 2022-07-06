@@ -4,7 +4,7 @@
 
 #include "transpose.cuh"
 
-#define BLOCK_DIM 16
+#define BLOCK_DIM 8
 
 __global__ void transpose_kernel(double *odata, double* idata, int width, int height)
 {

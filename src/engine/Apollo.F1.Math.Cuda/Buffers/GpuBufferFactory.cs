@@ -8,4 +8,9 @@ public class GpuBufferFactory : IBufferFactory
     {
         return new GpuBuffer(descriptor);
     }
+
+    public IBuffer TakeOwnership(IntPtr ptr, BufferDescriptor descriptor)
+    {
+        return new GpuBuffer(ptr, descriptor);
+    }
 }
