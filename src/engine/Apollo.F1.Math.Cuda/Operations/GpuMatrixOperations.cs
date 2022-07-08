@@ -1,11 +1,10 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-using Apollo.F1.Math.Common.Buffers;
+﻿using Apollo.F1.Math.Common.Buffers;
 using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Cuda.Buffers;
 using Apollo.F1.Math.Cuda.Common;
 using Apollo.F1.Math.Cuda.Kernels;
 
-namespace Apollo.F1.Math.Cuda;
+namespace Apollo.F1.Math.Cuda.Operations;
 
 public class GpuMatrixOperations : IMatrixOperations
 {
@@ -42,7 +41,7 @@ public class GpuMatrixOperations : IMatrixOperations
         InvokeKernel<SumKernel, SumKernelOptions>(options);
 
         var cpuArray = new double[1];
-        Vram.CopyDeviceToHost(output.Ptr, cpuArray, output.ByteWidth);
+        GlobalMemory.CopyDeviceToHost(output.Ptr, cpuArray, output.ByteWidth);
 
         return cpuArray[0];
     }
@@ -71,15 +70,15 @@ public class GpuMatrixOperations : IMatrixOperations
         InvokeKernel<PointwiseLogKernel, PointwiseOperationKernelOptions>(options);
     }
     
-    public void ApplySigmoid(Matrix matrix)
+    public void ApplySigmoid(Matrix matrix, Matrix output)
     {
-        var options = new FunctionKernelOptions(matrix, matrix);
+        var options = new FunctionKernelOptions(matrix, output);
         InvokeKernel<FunctionSigmoidKernel, FunctionKernelOptions>(options);
     }
 
-    public void ApplySigmoidGradient(Matrix matrix)
+    public void ApplySigmoidGradient(Matrix matrix, Matrix output)
     {
-        var options = new FunctionKernelOptions(matrix, matrix);
+        var options = new FunctionKernelOptions(matrix, output);
         InvokeKernel<FunctionSigmoidGradientKernel, FunctionKernelOptions>(options);
     }
 

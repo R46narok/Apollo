@@ -1,6 +1,6 @@
 ﻿namespace Apollo.F1.Math.Common.Buffers;
 
-public interface IBuffer
+public interface IBuffer : IDisposable
 {
     public int Offset { get; }
     public int Stride { get; }
@@ -44,5 +44,9 @@ public class BufferBase : IBuffer
          Stride = descriptor.Stride;
          ByteWidth = descriptor.ByteWidth;
          Usage = descriptor.Usage;
+     }
+
+     public virtual void Dispose()
+     {
      }
 }

@@ -10,7 +10,7 @@ public class Matrix : IEnumerable<double>
    public static IMatrixOperations Operations { get; set; }
 
    public IBuffer Buffer { get; }
-
+   
    public int Rows { get; private set; }
    public int Columns { get; private set; }
    
@@ -66,8 +66,8 @@ public class Matrix : IEnumerable<double>
 
    public Matrix Add(double scalar) => Operations.Add(this, scalar);
    
-   public void ApplySigmoid() => Operations.ApplySigmoid(this);
-   public void ApplySigmoidGradient() => Operations.ApplySigmoidGradient(this);
+   public void ApplySigmoid(Matrix output) => Operations.ApplySigmoid(this, output);
+   public void ApplySigmoidGradient(Matrix output) => Operations.ApplySigmoidGradient(this, output);
 
    public void InsertColumn(double value, Matrix output) => Operations.InsertColumn(this, output, value);
    public Matrix InsertColumn(double value) => Operations.InsertColumn(this, value);

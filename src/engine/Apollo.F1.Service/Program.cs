@@ -1,7 +1,6 @@
-using System.Diagnostics;
 using Apollo.F1.Math.Common.LinearAlgebra;
-using Apollo.F1.Math.Cuda;
 using Apollo.F1.Math.Cuda.Buffers;
+using Apollo.F1.Math.Cuda.Operations;
 using Apollo.F1.Math.Learning;
 using Apollo.F1.Math.Neural;
 
@@ -45,7 +44,6 @@ x.Buffer.Upload(cpuX);
 y.Buffer.Upload(cpuY);
 x = x.InsertColumn(1.0);
 
-Console.WriteLine($"Initial cost: {nn.ComputeCost(x, y)}");
 nn.GradientDescent(x, y);
 
 using var rd2 = new StreamReader("mnist_test.csv");

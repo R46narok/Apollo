@@ -31,8 +31,8 @@ public interface IMatrixOperations
    public Matrix Multiply(double scalar);
    public void Multiply(double scalar, Matrix input, Matrix output);
    
-   public void ApplySigmoid(Matrix matrix);
-   public void ApplySigmoidGradient(Matrix matrix);
+   public void ApplySigmoid(Matrix matrix, Matrix output);
+   public void ApplySigmoidGradient(Matrix matrix, Matrix output);
 
    public void InsertColumn(Matrix matrix, Matrix output, double value);
    public Matrix InsertColumn(Matrix matrix, double value);

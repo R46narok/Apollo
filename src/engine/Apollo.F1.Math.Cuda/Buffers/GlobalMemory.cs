@@ -5,7 +5,7 @@ using Apollo.F1.Math.Cuda.Common;
 
 namespace Apollo.F1.Math.Cuda.Buffers;
 
-public static class Vram
+public static class GlobalMemory
 {
     [DllImport(Dll.Name, EntryPoint = "allocate_global_memory", CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr Malloc(int bytes);

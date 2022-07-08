@@ -9,13 +9,14 @@ namespace Apollo.F1.Math.Cuda.Kernels;
 public class FunctionSigmoidKernel : KernelBase<FunctionKernelOptions>
 {
     [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "function_sigmoid")]
-    private static extern void FunctionSigmoid(IntPtr ptr, int length);
+    private static extern void FunctionSigmoid(IntPtr input, IntPtr output, int length);
 
     public override void Invoke(FunctionKernelOptions options)
     {
-        var ptr = options.Output.Ptr;
+        var input = options.Input.Ptr;
+        var output = options.Output.Ptr;
         var length = options.Output.ByteWidth / sizeof(double);
         
-        FunctionSigmoid(ptr, length);
+        FunctionSigmoid(input, output, length);
     }
 }

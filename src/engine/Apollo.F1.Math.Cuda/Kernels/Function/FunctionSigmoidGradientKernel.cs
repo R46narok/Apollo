@@ -8,13 +8,14 @@ namespace Apollo.F1.Math.Cuda.Kernels;
 public class FunctionSigmoidGradientKernel : KernelBase<FunctionKernelOptions>
 {
     [DllImport(Dll.Name, CallingConvention = CallingConvention.Cdecl, EntryPoint = "function_sigmoid_gradient")]
-    private static extern void FunctionSigmoidGradient(IntPtr ptr, int length);
+    private static extern void FunctionSigmoidGradient(IntPtr input, IntPtr output, int length);
 
     public override void Invoke(FunctionKernelOptions options)
     {
-        var ptr = options.Output.Ptr;
+        var input = options.Input.Ptr;
+        var output = options.Output.Ptr;
         var length = options.Output.ByteWidth / sizeof(double);
         
-        FunctionSigmoidGradient(ptr, length);
+        FunctionSigmoidGradient(input, output, length);
     }
 }

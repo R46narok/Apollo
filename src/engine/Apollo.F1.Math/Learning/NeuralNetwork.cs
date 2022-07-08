@@ -1,7 +1,5 @@
 ﻿using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Exceptions;
-using Apollo.F1.Math.Extensions;
-using Apollo.F1.Math.Functions;
 using Apollo.F1.Math.Neural;
 
 namespace Apollo.F1.Math.Learning;
@@ -13,8 +11,8 @@ public class NeuralNetwork
     private readonly double _regularizationTerm;
     private readonly double _distributionUpperBound;
     private readonly double _distributionLowerBound;
-    
-    public Matrix[] _weights = null!;
+
+    private Matrix[] _weights = null!;
     private Matrix[] _derivatives = null!;
     
     public NeuralNetwork(NeuralNetworkOptions options)
@@ -99,13 +97,13 @@ public class NeuralNetwork
         var a1 = x;
                 
         var z2 = a1.Multiply(_weights[0].Transpose());
-        z2.ApplySigmoid();
+        z2.ApplySigmoid(z2);
         var a2 = z2;
 
         a2 = a2.InsertColumn(1.0);
         
         var z3 = a2.Multiply(_weights[1].Transpose());
-        z3.ApplySigmoid();
+        z3.ApplySigmoid(z3);
         return z3;
     }
     
@@ -121,14 +119,14 @@ public class NeuralNetwork
         var a1 = x; // x must include the bias column
         var z2 = a1.Multiply(_weights[0].Transpose());
         var z2Gradient = a1.Multiply(_weights[0].Transpose());
-        z2.ApplySigmoid();
-        z2Gradient.ApplySigmoidGradient();
+        z2.ApplySigmoid(z2);
+        z2Gradient.ApplySigmoidGradient(z2Gradient);
         
         var a2 = z2;
         a2 = a2.InsertColumn(1.0);
 
         var z3 = a2.Multiply(_weights[1].Transpose());
-        z3.ApplySigmoid();
+        z3.ApplySigmoid(z3);
         var a3 = z3;
 
         var delta3 = a3.Subtract(y);
@@ -151,10 +149,6 @@ public class NeuralNetwork
 
         for (int i = 0; i < iterations; ++i)
         {
-            if (i == 1600)
-            {
-                int a = 3;
-            }
             var temp = new Matrix[_weights.Length];
 
             for (int j = 0; j < _weights.Length; ++j)
