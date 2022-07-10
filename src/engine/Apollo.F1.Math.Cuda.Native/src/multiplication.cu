@@ -36,17 +36,15 @@ void multiply(void* pFirst, void* pSecond, void* pOutput,
 
 __global__ void multiply_scalar_kernel(double* pOutput, double* pInput, int iLength, double scalar)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    // Make sure we do not go out of bounds
-    if (id < iLength)
-        pOutput[id] = pInput[id] * scalar;
+    for (unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+    {
+        pOutput[i] = pInput[i] * scalar;
+    }
 }
 
 void multiply_scalar(void* input, void* pOutput, int iLength, double scalar)
 {
-    int thr_per_blk =  1024;
-    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
-
-    multiply_scalar_kernel<<<thr_per_blk, blk_in_grid>>>((double *) pOutput, (double *) input, iLength, scalar);
+    multiply_scalar_kernel<<<512, 256>>>((double *) pOutput, (double *) input, iLength, scalar);
 }

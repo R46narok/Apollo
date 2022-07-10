@@ -1,44 +1,40 @@
 #include "functions_operations.cuh"
 #include "nvtx3/nvToolsExt.h"
 #include <cmath>
-#include <stdio.h>
 
-__global__ void function_sigmoid_kernel(double* pInput, double* pOutput, int iLength)
+__global__ void function_sigmoid_kernel(const double* pInput, double* pOutput, int iLength)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (id < iLength)
-        pOutput[id] = 1.0 / (1 + exp(-1.0 * pInput[id]));
+    for (unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+        pOutput[i] = 1.0 / (1 + exp(-1.0 * pInput[i]));
 }
 
 void function_sigmoid(void* pInput, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
 
-    function_sigmoid_kernel<<<thr_per_blk, blk_in_grid>>>((double*)pInput, (double*)pOutput, iLength);
+    function_sigmoid_kernel<<<1024, 256>>>((double*)pInput, (double*)pOutput, iLength);
 
     nvtxRangePop();
 }
 
-__global__ void function_sigmoid_gradient_kernel(double* pInput, double* pOutput, int iLength)
+__global__ void function_sigmoid_gradient_kernel(const double* pInput, double* pOutput, int iLength)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (id < iLength)
+    for (unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
     {
-        double sigmoid = 1.0 / (1 + exp(-1.0 * pInput[id]));
-        pOutput[id] = sigmoid * (1 - sigmoid);
+        double sigmoid = 1.0 / (1 + exp(-1.0 * pInput[i]));
+        pOutput[i] = sigmoid * (1 - sigmoid);
     }
 }
 
 void function_sigmoid_gradient(void* pInput, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
 
-    function_sigmoid_gradient_kernel<<<thr_per_blk, blk_in_grid>>>((double*)pInput, (double*)pOutput, iLength);
+    function_sigmoid_gradient_kernel<<<1024, 256>>>((double*)pInput, (double*)pOutput, iLength);
+
     nvtxRangePop();
 }

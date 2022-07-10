@@ -3,97 +3,92 @@
 
 __global__ void pointwise_addition_kernel(double* pFirst, double* pSecond, double* pOutput, int iLength)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    // Make sure we do not go pOutput of bounds
-    if (id < iLength)
-        pOutput[id] = pFirst[id] + pSecond[id];
+    for (unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+    {
+        pOutput[i] = pFirst[i] + pSecond[i];
+    }
 }
 
 void pointwise_addition(void* pFirst, void* pSecond, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
 
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
-
-    pointwise_addition_kernel<<<thr_per_blk, blk_in_grid>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
+    pointwise_addition_kernel<<<512, 256>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
                                                             iLength);
     nvtxRangePop();
 }
 
 __global__ void pointwise_subtraction_kernel(double* pFirst, double* pSecond, double* pOutput, int iLength)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    // Make sure we do not go pOutput of bounds
-    if (id < iLength)
-        pOutput[id] = pFirst[id] - pSecond[id];
+    for (unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+    {
+        pOutput[i] = pFirst[i] - pSecond[i];
+    }
 }
 
 void pointwise_subtraction(void* pFirst, void* pSecond, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
 
-    pointwise_subtraction_kernel<<<thr_per_blk, blk_in_grid>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
+    pointwise_subtraction_kernel<<<512, 256>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
                                                             iLength);
     nvtxRangePop();
 }
 
 __global__ void pointwise_multiplication_kernel(double* pFirst, double* pSecond, double* pOutput, int iLength)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    // Make sure we do not go pOutput of bounds
-    if (id < iLength)
-        pOutput[id] = pFirst[id] * pSecond[id];
+    for (unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+    {
+        pOutput[i] = pFirst[i] * pSecond[i];
+    }
 }
 
 void pointwise_multiplication(void* pFirst, void* pSecond, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil(float(iLength) / thr_per_blk);
 
-    pointwise_multiplication_kernel<<<thr_per_blk, blk_in_grid>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
+    pointwise_multiplication_kernel<<<512, 216>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
                                                                iLength);
     nvtxRangePop();
 }
 
 __global__ void pointwise_log_kernel(double* pInput, double* pOutput, int iLength)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (id < iLength)
-        pOutput[id] = log(pInput[id]);
+    for (unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+    {
+        pOutput[i] = log(pInput[i]);
+    }
 }
 
 void pointwise_log(void* pInput, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil((float)iLength / thr_per_blk);
-    pointwise_log_kernel<<<thr_per_blk, blk_in_grid>>>((double*)pInput, (double*)pOutput, iLength);
+    pointwise_log_kernel<<<512, 256>>>((double*)pInput, (double*)pOutput, iLength);
     nvtxRangePop();
 }
 
 __global__ void pointwise_scaled_subtraction_kernel(double* pFirst, double* pSecond, double* pOutput, int iLength, double scale)
 {
-    int id = blockDim.x * blockIdx.x + threadIdx.x;
-
-    // Make sure we do not go pOutput of bounds
-    if (id < iLength)
-        pOutput[id] = pFirst[id] - scale * pSecond[id];
+    for (unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+         i < iLength;
+         i += blockDim.x * gridDim.x)
+    {
+        pOutput[i] = pFirst[i] - scale * pSecond[i];
+    }
 }
 
 void pointwise_scaled_subtraction(void* pFirst, void* pSecond, void* pOutput, int iLength, double scale)
 {
     nvtxRangePush(__FUNCTION__);
-    int thr_per_blk = 1024;
-    int blk_in_grid = ceil((float)iLength / thr_per_blk);
-    pointwise_scaled_subtraction_kernel<<<thr_per_blk, blk_in_grid>>>((double*)pFirst, (double*)pSecond, (double*)pOutput,
+    pointwise_scaled_subtraction_kernel<<<512, 256>>>((double*)pFirst, (double*)pSecond, (double*)pOutput,
                                                                       iLength, scale);
     nvtxRangePop();
 }
