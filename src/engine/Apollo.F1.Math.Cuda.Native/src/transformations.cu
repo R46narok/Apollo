@@ -1,64 +1,73 @@
 #include "transformations.cuh"
 
+#define BLOCK_SIZE 32
+
 __global__ void insert_column_kernel(double *pOutput, double* pInput, int width, int height, double value)
 {
-    int idx = threadIdx.x;
+    unsigned int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
 
-    for (int i = 0; i < height; ++i)
+    if (xIndex < width && yIndex < height)
     {
-        int index_in = idx * height + i;
-        int index_out = idx * (height + 1) + (i + 1);
+        int index_in = xIndex * height + yIndex;
+        int index_out = xIndex * (height + 1) + (yIndex + 1);
+
         pOutput[index_out] = pInput[index_in];
     }
 
-    pOutput[idx * (height + 1) + 0] = value;
+    if (xIndex == 0)
+        pOutput[xIndex * (height + 1) + 0] = value;
 }
 
 void insert_column(void* pInput, void* pOutput, int iRows, int iColumns, double value)
 {
-    dim3 grid(1, 1, 1);
-    dim3 threads(iRows, 1, 1);
+    dim3 grid(iRows / BLOCK_SIZE, iColumns / BLOCK_SIZE, 1);
+    dim3 threads(BLOCK_SIZE, BLOCK_SIZE, 1);
 
     insert_column_kernel<<< grid, threads >>>((double*)pOutput, (double*)pInput, iRows, iColumns, value);
 }
 
 __global__ void insert_row_kernel(double *pOutput, double* pInput, int width, int height, double value)
 {
-    int idx = threadIdx.x;
+    unsigned int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
 
-    for (int i = 0; i < width; ++i)
+    if (xIndex < width && yIndex < height)
     {
-        int index_in = i * height + idx;
-        int index_out = (i + 1) * height + idx;
+        int index_in = xIndex * height + yIndex;
+        int index_out = (xIndex + 1) * height + yIndex;
         pOutput[index_out] = pInput[index_in];
     }
 
-    pOutput[0 * height + idx] = value;
+
+    pOutput[0 * height + xIndex] = value;
 }
 
 void insert_row(void* pInput, void* pOutput, int iRows, int iColumns, double value)
 {
-    dim3 grid(1, 1, 1);
-    dim3 threads(iColumns, 1, 1);
+    dim3 grid(iRows / BLOCK_SIZE, iColumns / BLOCK_SIZE, 1);
+    dim3 threads(BLOCK_SIZE, BLOCK_SIZE, 1);
 
     insert_row_kernel<<< grid, threads >>>((double*)pOutput, (double*)pInput, iRows, iColumns, value);
 }
 
 __global__ void remove_column_kernel(double* pInput, double* pOutput, int width, int height)
 {
-    int idx = threadIdx.x;
-    for (int i = 1; i < height; ++i)
+    unsigned int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if (xIndex < width && yIndex < height)
     {
-        int index_in = idx * height + i;
-        int index_out = idx * (height - 1) + (i - 1);
+        int index_in = xIndex * height + yIndex;
+        int index_out = xIndex * (height - 1) + (yIndex - 1);
         pOutput[index_out] = pInput[index_in];
     }
 }
 
 void remove_column(void* src, void* dst, int iRows, int iColumns)
 {
-    dim3 grid(1, 1, 1);
-    dim3 threads(iRows, 1, 1);
+    dim3 grid(iRows / BLOCK_SIZE, iColumns / BLOCK_SIZE, 1);
+    dim3 threads(BLOCK_SIZE, BLOCK_SIZE, 1);
 
     remove_column_kernel<<<grid, threads>>>((double*) src,(double*)  dst, iRows, iColumns);
 }

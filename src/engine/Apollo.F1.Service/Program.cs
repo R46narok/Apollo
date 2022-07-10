@@ -15,7 +15,7 @@ var options = new NeuralNetworkOptions
 };
 var nn = new NeuralNetwork(options);
 
-int samples = 600;
+int samples = 500;
 
 var x = new Matrix(samples, 784);
 var y = new Matrix(samples, 10);
