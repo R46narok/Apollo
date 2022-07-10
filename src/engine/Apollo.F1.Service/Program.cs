@@ -15,7 +15,7 @@ var options = new NeuralNetworkOptions
 };
 var nn = new NeuralNetwork(options);
 
-int samples = 500;
+int samples = 700;
 
 var x = new Matrix(samples, 784);
 var y = new Matrix(samples, 10);
@@ -46,8 +46,8 @@ x.Buffer.Upload(cpuX);
 y.Buffer.Upload(cpuY);
 x = x.InsertColumn(1.0);
 
+Console.WriteLine($"Initial cost: {nn.ComputeCost(x, y)}");
 nn.GradientDescent(x, y);
-Console.WriteLine(nn.ComputeCost(x, y));
 /*
 using var rd2 = new StreamReader("mnist_test.csv");
 line = -1;

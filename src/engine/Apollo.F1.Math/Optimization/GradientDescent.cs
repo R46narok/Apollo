@@ -16,20 +16,6 @@ public class GradientDescent : IOptimizationProcedure
 
     public void Optimize(ICostFunction function, Matrix[] parameters, Matrix[] derivatives, Matrix x, Matrix y)
     {
-        for (int i = 0; i < _iterations; ++i)
-        {
-            var temp = new Matrix[parameters.Length];
         
-            for (int j = 0; j < parameters.Length; ++j)
-            {
-                var w = parameters[j];
-                temp[j] = new Matrix(w.Rows, w.Columns);
-        
-                w.Subtract(derivatives[j], temp[j], _learningRate);
-            }
-            parameters = temp;
-            Console.WriteLine($"Iteration {i}, Cost: {function.ComputeCost(x, y)}");
-            function.ComputeDerivatives(x, y);
-        }
     }
 }

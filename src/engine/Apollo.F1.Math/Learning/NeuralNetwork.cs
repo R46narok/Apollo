@@ -41,14 +41,6 @@ public class NeuralNetwork : ICostFunction
         if (_layers.Length < 2) throw new ArchitectureException();
     }
 
-    private double UniformDistribution(double low, double high) 
-    { 
-        double difference = high - low; // The difference between the two
-        int scale = 100;
-       	int scaled_difference = (int)(difference * scale);
-       	return low + (1.0 * (Random.Shared.Next() % scaled_difference) / scale);
-    }
-
     private void InitializeWeights()
     {
         int length = _layers.Length - 1;
@@ -154,7 +146,6 @@ public class NeuralNetwork : ICostFunction
     public void Backpropagate(Matrix x, Matrix y)
     {
         if(_z2 is null) InitFF(x);
-        int l = _layers.Length;
         int m = x.Rows;
 
         ResetErrorTerms();
@@ -213,7 +204,7 @@ public class NeuralNetwork : ICostFunction
         h.Subtract(_yNegative);
         cost = h.Sum();
         
-        return cost + (0.25/(2 * m));
+        return cost * (1.0 / m);
     }
 
     public void ComputeDerivatives(Matrix x, Matrix y)
