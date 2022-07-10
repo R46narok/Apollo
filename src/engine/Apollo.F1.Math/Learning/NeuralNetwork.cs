@@ -1,10 +1,13 @@
-﻿using Apollo.F1.Math.Common.LinearAlgebra;
+﻿using System.Formats.Asn1;
+using Apollo.F1.Math.Common;
+using Apollo.F1.Math.Common.Interfaces;
+using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Exceptions;
 using Apollo.F1.Math.Neural;
 
 namespace Apollo.F1.Math.Learning;
 
-public class NeuralNetwork
+public class NeuralNetwork : ICostFunction
 {
     private readonly int[] _layers;
     private readonly double _learningRate;
@@ -12,7 +15,9 @@ public class NeuralNetwork
     private readonly double _distributionUpperBound;
     private readonly double _distributionLowerBound;
 
-    private Matrix[] _weights = null!;
+    public Matrix[] _weights = null!;
+    private Matrix[] _tempWeights = null!;
+    private Matrix[] _weightsTransposed = null!;
     private Matrix[] _derivatives = null!;
     
     public NeuralNetwork(NeuralNetworkOptions options)
@@ -48,6 +53,8 @@ public class NeuralNetwork
     {
         int length = _layers.Length - 1;
         _weights = new Matrix[length];
+        _weightsTransposed = new Matrix[length];
+        _tempWeights = new Matrix[length];
         
         for (int i = 0; i < length; ++i)
         {
@@ -62,6 +69,8 @@ public class NeuralNetwork
 
             _weights[i] = new Matrix(_layers[i + 1], _layers[i] + 1);
             _weights[i].Buffer.Upload(cpuBuffer);
+            _tempWeights[i] = new Matrix(_layers[i + 1], _layers[i] + 1);
+            _weightsTransposed[i] = _weights[i].Transpose();
         }
     }
 
@@ -85,6 +94,38 @@ public class NeuralNetwork
             _layers[i]++;
         }
     }
+
+    private Matrix _z2;
+    private Matrix _z2Gradient;
+    private Matrix _z2GradientBiased;
+    private Matrix _z3;
+    private Matrix _a2;
+    private Matrix _delta3;
+    private Matrix _delta3Transposed;
+    private Matrix _delta2Transposed;
+    private Matrix _delta2;
+    private Matrix _delta2Biased;
+    private Matrix _hNegative;
+    private Matrix _yNegative;
+    
+    private void InitFF(Matrix x)
+    {
+        _z2 = new Matrix(x.Rows, _weightsTransposed[0].Columns);
+        _z2Gradient = new Matrix(x.Rows, _weightsTransposed[0].Columns);
+        _z2GradientBiased = new Matrix(x.Rows, _weightsTransposed[0].Columns + 1);
+        _a2 = new Matrix(x.Rows, _weightsTransposed[0].Columns + 1);
+        _z3 = new Matrix(x.Rows, _weightsTransposed[1].Columns);
+
+        _delta3 = new Matrix(x.Rows, _weightsTransposed[1].Columns);
+        _delta3Transposed = new Matrix(_delta3.Columns, _delta3.Rows);
+        _delta2 = new Matrix(_delta3.Rows, _weights[1].Columns - 1);
+        _delta2Transposed = new Matrix(_delta2.Columns, _delta2.Rows);
+        _delta2Biased = new Matrix(_delta3.Rows, _weights[1].Columns);
+
+        _hNegative = new Matrix(x.Rows, _weights[1].Rows);
+        _yNegative = new Matrix(x.Rows, _weights[1].Rows);
+    }
+
     
     /// <summary>
     /// Computes the output of a neural network based on a given input
@@ -94,22 +135,25 @@ public class NeuralNetwork
     /// <returns>[training samples x number of output units] matrix, which contains the predictions</returns>
     public Matrix FeedForward(Matrix x)
     {
-        var a1 = x;
-                
-        var z2 = a1.Multiply(_weights[0].Transpose());
-        z2.ApplySigmoid(z2);
-        var a2 = z2;
+        if(_z2 is null) InitFF(x);
 
-        a2 = a2.InsertColumn(1.0);
+        var a1 = x;
         
-        var z3 = a2.Multiply(_weights[1].Transpose());
-        z3.ApplySigmoid(z3);
-        return z3;
+        a1.Multiply(_weightsTransposed[0], _z2);
+        _z2.ApplySigmoid(_z2);
+        var a2 = _z2;
+        
+        a2.InsertColumn(1.0, _a2);
+        
+        _a2.Multiply(_weightsTransposed[1], _z3);
+        _z3.ApplySigmoid(_z3);
+        return _z3;
     }
     
     // ReSharper disable once IdentifierTypo
     public void Backpropagate(Matrix x, Matrix y)
     {
+        if(_z2 is null) InitFF(x);
         int l = _layers.Length;
         int m = x.Rows;
 
@@ -117,72 +161,91 @@ public class NeuralNetwork
 
         // Vectorized implementation of backpropagation
         var a1 = x; // x must include the bias column
-        var z2 = a1.Multiply(_weights[0].Transpose());
-        var z2Gradient = a1.Multiply(_weights[0].Transpose());
-        z2.ApplySigmoid(z2);
-        z2Gradient.ApplySigmoidGradient(z2Gradient);
+        a1.Multiply(_weightsTransposed[0], _z2);
+        a1.Multiply(_weightsTransposed[0], _z2Gradient);
+        _z2.ApplySigmoid(_z2);
+        _z2Gradient.ApplySigmoidGradient(_z2Gradient);
         
-        var a2 = z2;
-        a2 = a2.InsertColumn(1.0);
+        var a2 = _z2;
+        a2.InsertColumn(1.0, _a2);
 
-        var z3 = a2.Multiply(_weights[1].Transpose());
-        z3.ApplySigmoid(z3);
-        var a3 = z3;
+        _a2.Multiply(_weightsTransposed[1], _z3);
+        _z3.ApplySigmoid(_z3);
+        var a3 = _z3;
 
-        var delta3 = a3.Subtract(y);
-        var delta2 = delta3.Multiply(_weights[1]);
+        a3.Subtract(y, _delta3);
+        _delta3.Multiply(_weights[1], _delta2Biased);
 
-        delta2 = delta2.PointwiseMultiply(z2Gradient.InsertColumn(1.0));
-        delta2 = delta2.RemoveColumn();
+        _z2Gradient.InsertColumn(1.0, _z2GradientBiased);
+        _delta2Biased.PointwiseMultiply(_z2GradientBiased, _delta2Biased);
+        _delta2Biased.RemoveColumn(_delta2);
 
-        _derivatives[0] = delta2.Transpose().Multiply(a1);
-        _derivatives[1] = delta3.Transpose().Multiply(a2);
+        _delta2.Transpose(_delta2Transposed);
+        _delta2Transposed.Multiply(a1, _derivatives[0]);
+
+        _delta3.Transpose(_delta3Transposed);
+        _delta3Transposed.Multiply(a2, _derivatives[1]);
 
         _derivatives[0].Multiply(1.0 / m);
         _derivatives[1].Multiply(1.0 / m);
     }
 
+    
+    public double ComputeCost(Matrix x, Matrix y)
+    {
+        if(_z2 is null) InitFF(x);
+        double cost = 0.0;
+        int m = x.Rows;
+
+        var h = FeedForward(x);
+    
+        y.Multiply(-1.0, _yNegative);
+        h.Multiply(-1.0, _hNegative);
+
+        h.PointwiseLog(h);
+        _yNegative.PointwiseMultiply(h, h);
+
+        _yNegative.Add(1.0, _yNegative);
+        _hNegative.Add(1.0, _hNegative);
+        _hNegative.PointwiseLog(_hNegative);
+        _yNegative.PointwiseMultiply(_hNegative, _yNegative);
+        
+        h.Subtract(_yNegative);
+        cost = h.Sum();
+        
+        return cost + (0.25/(2 * m));
+    }
+
+    public void ComputeDerivatives(Matrix x, Matrix y)
+    {
+        Backpropagate(x, y);
+    }
+
     public void GradientDescent(Matrix x, Matrix y)
     {
         var alpha = 0.25;
-        var iterations = 2000;
-
+        var iterations = 10000;
+    
         for (int i = 0; i < iterations; ++i)
         {
-            var temp = new Matrix[_weights.Length];
-
             for (int j = 0; j < _weights.Length; ++j)
             {
                 var w = _weights[j];
-                temp[j] = new Matrix(w.Rows, w.Columns);
-
-                w.Subtract(_derivatives[j], temp[j], alpha);
+                _tempWeights[j].Buffer.Reset();
+    
+                w.Subtract(_derivatives[j], _tempWeights[j], alpha);
             }
-            _weights = temp;
+
+            (_weights, _tempWeights) = (_tempWeights, _weights);
+
+            for (int j = 0; j < _weights.Length; ++j)
+                _weights[j].Transpose(_weightsTransposed[j]);
+            
             Console.WriteLine($"Iteration {i}, Cost: {ComputeCost(x, y)}");
             Backpropagate(x, y);
         }
     }
     
-    public double ComputeCost(Matrix x, Matrix y)
-    {
-        double cost = 0.0;
-        int m = x.Rows;
-
-        var h = FeedForward(x);
-
-        var yNegative = new Matrix(y.Rows, y.Columns);
-        var hNegative = new Matrix(h.Rows, h.Columns); 
-        y.Multiply(-1.0, yNegative);
-        h.Multiply(-1.0, hNegative);
-        
-        var temp = yNegative.PointwiseMultiply(h.PointwiseLog());
-        temp = temp.Subtract(yNegative.Add(1.0).PointwiseMultiply(hNegative.Add(1).PointwiseLog()));
-        cost = temp.Sum();
-        
-        return cost + (0.25/(2 * m));
-    }
-
     private void ResetErrorTerms()
     {
         int length = _derivatives.Length;

@@ -1,10 +1,12 @@
+using Apollo.F1.Math.Common.Interfaces;
 using Apollo.F1.Math.Common.LinearAlgebra;
 using Apollo.F1.Math.Cuda.Buffers;
 using Apollo.F1.Math.Cuda.Operations;
 using Apollo.F1.Math.Learning;
 using Apollo.F1.Math.Neural;
+using Apollo.F1.Math.Optimization;
 
-Matrix.BufferFactory = new GpuBufferFactory();
+Matrix.BufferFactory = new GlobalMemoryAllocator();
 Matrix.Operations = new GpuMatrixOperations();
 
 var options = new NeuralNetworkOptions
@@ -13,7 +15,7 @@ var options = new NeuralNetworkOptions
 };
 var nn = new NeuralNetwork(options);
 
-int samples = 500;
+int samples = 600;
 
 var x = new Matrix(samples, 784);
 var y = new Matrix(samples, 10);
@@ -35,7 +37,7 @@ while (!rd.EndOfStream && line <= samples)
         var label = dd[0];
         cpuY[(line - 1) * 10 + (int) label] = 1;
         for (int i = 0; i < 784; ++i)
-            cpuX[(line - 1) * 784 + i] = dd[1 + i];
+            cpuX[(line - 1) * 784 + i] = dd[1 + i] / 256.0;
     }
     
 }
@@ -45,7 +47,8 @@ y.Buffer.Upload(cpuY);
 x = x.InsertColumn(1.0);
 
 nn.GradientDescent(x, y);
-
+Console.WriteLine(nn.ComputeCost(x, y));
+/*
 using var rd2 = new StreamReader("mnist_test.csv");
 line = -1;
 int correct = 0;
@@ -64,8 +67,21 @@ while (!rd.EndOfStream)
             cpuData[i] = dd[1 + i] / 256.0;
         prediction.Buffer.Upload(cpuData);
         prediction = prediction.InsertColumn(1.0);
+
+        var a1 = prediction;
+                        
+        var z2 = a1.Multiply(nn._weights[0].Transpose());
+        z2.ApplySigmoid(z2);
+        var a2 = z2;
+        
+        a2 = a2.InsertColumn(1.0);
+        
+        var z3 = a2.Multiply(nn._weights[1].Transpose());
+        z3.ApplySigmoid(z3);
+        
+        Console.WriteLine($"Label {label}: [{string.Join(" ", z3.Buffer.Read())}]");
     }
-}
+}*/
 
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })

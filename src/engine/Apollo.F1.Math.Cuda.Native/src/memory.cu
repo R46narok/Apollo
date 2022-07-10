@@ -1,7 +1,9 @@
 #include "memory.cuh"
+#include "stdio.h"
 
 void* allocate_global_memory(int iBytes)
 {
+   // printf("Allocating %d bytes\n", iBytes);
     void* ptr;
     cudaMalloc(&ptr, iBytes);
     return ptr;
@@ -9,7 +11,8 @@ void* allocate_global_memory(int iBytes)
 
 void destroy_global_memory(void* ptr)
 {
-    if (ptr != nullptr) cudaFree(ptr);
+    //printf("Deallocating bytes\n");
+    cudaFree(ptr);
 }
 
 void copy_host_to_device(void* pSrc, void* pDst, int iLength)

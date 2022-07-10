@@ -6,7 +6,7 @@ namespace Apollo.F1.Math.Common.LinearAlgebra;
 
 public class Matrix : IEnumerable<double>
 {
-   public static IBufferFactory BufferFactory { get; set; }
+   public static IBufferAllocator BufferFactory { get; set; }
    public static IMatrixOperations Operations { get; set; }
 
    public IBuffer Buffer { get; }
@@ -65,6 +65,7 @@ public class Matrix : IEnumerable<double>
    public Matrix PointwiseLog() => Operations.PointwiseLog(this);
 
    public Matrix Add(double scalar) => Operations.Add(this, scalar);
+   public void Add(double scalar, Matrix output) => Operations.Add(this, output, scalar);
    
    public void ApplySigmoid(Matrix output) => Operations.ApplySigmoid(this, output);
    public void ApplySigmoidGradient(Matrix output) => Operations.ApplySigmoidGradient(this, output);
