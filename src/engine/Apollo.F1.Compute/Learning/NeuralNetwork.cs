@@ -18,7 +18,7 @@ public class NeuralNetwork : ICostFunction
     public Matrix[] _weights = null!;
     private Matrix[] _tempWeights = null!;
     public Matrix[] _weightsTransposed = null!;
-    private Matrix[] _derivatives = null!;
+    public Matrix[] _derivatives = null!;
     
     public NeuralNetwork(NeuralNetworkOptions options)
     {
@@ -211,7 +211,7 @@ public class NeuralNetwork : ICostFunction
     public void GradientDescent(Matrix x, Matrix y)
     {
         var alpha = 0.25;
-        var iterations = 10000;
+        var iterations = 2000;
     
         for (int i = 0; i < iterations; ++i)
         {

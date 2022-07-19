@@ -67,7 +67,7 @@ __global__ void remove_column_kernel(double* pInput, double* pOutput, int width,
 
 void remove_column(void* src, void* dst, int iRows, int iColumns)
 {
-    dim3 grid(iRows / BLOCK_SIZE, iColumns / BLOCK_SIZE, 1);
+    dim3 grid(ceil((double)iRows / BLOCK_SIZE), ceil((double)iColumns / BLOCK_SIZE), 1);
     dim3 threads(BLOCK_SIZE, BLOCK_SIZE, 1);
 
     remove_column_kernel<<<grid, threads>>>((double*) src,(double*)  dst, iRows, iColumns);
