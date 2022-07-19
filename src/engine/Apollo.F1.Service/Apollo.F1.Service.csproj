@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Apollo.F1.Math.Cuda\Apollo.F1.Math.Cuda.csproj" />
-      <ProjectReference Include="..\Apollo.F1.Math\Apollo.F1.Math.csproj" />
+      <ProjectReference Include="..\Apollo.F1.Compute.Cuda\Apollo.F1.Compute.Cuda.csproj" />
+      <ProjectReference Include="..\Apollo.F1.Compute\Apollo.F1.Compute.csproj" />
     </ItemGroup>
 </Project>

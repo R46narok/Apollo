@@ -1,12 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Math", "Apollo.F1.Math\Apollo.F1.Math.csproj", "{369271E9-B17E-4B17-BDEF-4E0241D23E3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Compute", "Apollo.F1.Compute\Apollo.F1.Compute.csproj", "{369271E9-B17E-4B17-BDEF-4E0241D23E3E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Service", "Apollo.F1.Service\Apollo.F1.Service.csproj", "{CFB5D0BA-93F0-4A2E-A5D4-9D5E36D04CA7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Core", "Apollo.F1.Core\Apollo.F1.Core.csproj", "{4B950B9B-E5F6-441B-B2F6-E7DC489ED382}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Math.Cuda", "Apollo.F1.Math.Cuda\Apollo.F1.Math.Cuda.csproj", "{3FC11815-EE29-49A6-81B1-48B4106CF40C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apollo.F1.Compute.Cuda", "Apollo.F1.Compute.Cuda\Apollo.F1.Compute.Cuda.csproj", "{3FC11815-EE29-49A6-81B1-48B4106CF40C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
