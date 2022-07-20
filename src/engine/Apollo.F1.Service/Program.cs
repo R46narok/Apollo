@@ -1,8 +1,10 @@
+using Apollo.F1.Compute.Common.Buffers;
 using Apollo.F1.Compute.Common.LinearAlgebra;
 using Apollo.F1.Compute.Cuda.Buffers;
 using Apollo.F1.Compute.Cuda.Operations;
 using Apollo.F1.Compute.Learning;
 using Apollo.F1.Compute.Neural;
+using Apollo.F1.Compute.Optimization;
 
 Matrix.BufferFactory = new GlobalMemoryAllocator();
 Matrix.Operations = new GpuMatrixOperations();
@@ -47,6 +49,8 @@ y.Buffer.Upload(cpuY);
 x = x.InsertColumn(1.0);
 
 nn.GradientDescent(x, y);
+var procedure = new GradientDescent(0.25, 1000);
+procedure.Optimize(nn, nn._weights, x, y);
 
 using var rd2 = new StreamReader("mnist_test.csv");
 line = -1;
@@ -56,7 +60,7 @@ int wrong = 0;
 while (!rd.EndOfStream)
 {
     line++;
-    var splits = rd.ReadLine().Split(',');
+    var splits = rd.ReadLine()!.Split(',');
     if (line > 0)
     {
         var dd = Array.ConvertAll(splits, double.Parse);
@@ -75,8 +79,6 @@ while (!rd.EndOfStream)
         
         if (output == 0) wrong++;
         else correct++;
-        // Console.WriteLine($"Label {label}: [{string.Join(" ", prediction.Buffer.Read())}]");
-        
     }
 }
 

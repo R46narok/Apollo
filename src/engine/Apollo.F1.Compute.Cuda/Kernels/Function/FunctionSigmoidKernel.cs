@@ -17,6 +17,6 @@ public class FunctionSigmoidKernel : KernelBase<FunctionKernelOptions>
         var output = options.Output.Ptr;
         var length = options.Output.ByteWidth / sizeof(double);
         
-        FunctionSigmoid(input, output, length);
+        FunctionSigmoid(input, output, (int)length);
     }
 }

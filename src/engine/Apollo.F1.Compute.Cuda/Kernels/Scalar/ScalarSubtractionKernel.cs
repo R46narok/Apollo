@@ -16,6 +16,6 @@ public class ScalarSubtractionKernel : KernelBase<ScalarKernelOptions>
         var length = options.Output.ByteWidth / sizeof(double);
         var scalar = options.Scalar;
 
-        SubtractScalar(inputBuffer, outputBuffer, length, scalar);
+        SubtractScalar(inputBuffer, outputBuffer, (int)length, scalar);
     }
 }

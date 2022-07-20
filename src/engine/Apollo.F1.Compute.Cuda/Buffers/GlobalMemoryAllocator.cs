@@ -16,6 +16,7 @@ public class GlobalMemoryAllocator : IBufferAllocator
 
     public IBuffer TakeOwnership(IntPtr ptr, BufferDescriptor descriptor)
     {
-        return new GpuBuffer(ptr, descriptor);
+        return new GpuBuffer(ptr + descriptor.Offset, descriptor);
     }
+
 }

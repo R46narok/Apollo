@@ -6,7 +6,8 @@ public class GpuBuffer : BufferBase, IDisposable
 {
     public GpuBuffer(BufferDescriptor descriptor) : base(descriptor)
     {
-        Ptr = GlobalMemory.Malloc(ByteWidth);
+        if (descriptor.Offset == 0)
+            Ptr = GlobalMemory.Malloc(ByteWidth);
     }
 
     public GpuBuffer(IntPtr ptr, BufferDescriptor descriptor) : base(descriptor)

@@ -16,6 +16,6 @@ public class PointwiseSubtractionKernel : KernelBase<PointwiseKernelOptions>
         var output = options.Output.Ptr;
         var length = options.FirstOperand.ByteWidth / sizeof(double);
 
-        PointwiseSubtraction(first, second, output, length);
+        PointwiseSubtraction(first, second, output, (int)length);
     }
 }

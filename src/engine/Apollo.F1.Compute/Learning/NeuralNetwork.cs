@@ -203,9 +203,10 @@ public class NeuralNetwork : ICostFunction
         return cost / (double)m;
     }
 
-    public void ComputeDerivatives(Matrix x, Matrix y)
+    public Matrix[] ComputeDerivatives(Matrix x, Matrix y)
     {
         Backpropagate(x, y);
+        return _derivatives;
     }
 
     public void GradientDescent(Matrix x, Matrix y)

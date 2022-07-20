@@ -16,6 +16,6 @@ public class PointwiseMultiplicationKernel : KernelBase<PointwiseKernelOptions>
         var output = options.Output.Ptr;
         var length = options.FirstOperand.ByteWidth / sizeof(double);
 
-        PointwiseMultiplication(first, second, output, length);
+        PointwiseMultiplication(first, second, output, (int)length);
     }
 }

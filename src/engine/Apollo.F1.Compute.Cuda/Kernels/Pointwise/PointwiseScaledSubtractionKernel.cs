@@ -16,6 +16,6 @@ public class PointwiseScaledSubtractionKernel : KernelBase<PointwiseKernelOption
         var scale = options.Scale;
         var length = options.FirstOperand.ByteWidth / sizeof(double);
         
-        PointwiseScaledSubtraction(first, second, output, length, scale);
+        PointwiseScaledSubtraction(first, second, output, (int)length, scale);
     }
 }

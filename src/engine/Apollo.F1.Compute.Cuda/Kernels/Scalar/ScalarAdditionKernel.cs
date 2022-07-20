@@ -17,6 +17,6 @@ public class ScalarAdditionKernel : KernelBase<ScalarKernelOptions>
         var length = options.Output.ByteWidth / sizeof(double);
         var scalar = options.Scalar;
 
-        AddScalar(inputBuffer, outputBuffer, length, scalar);
+        AddScalar(inputBuffer, outputBuffer, (int)length, scalar);
     }
 }

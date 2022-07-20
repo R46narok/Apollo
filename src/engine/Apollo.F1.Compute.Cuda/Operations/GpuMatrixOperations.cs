@@ -41,7 +41,7 @@ public class GpuMatrixOperations : IMatrixOperations
         InvokeKernel<SumKernel, SumKernelOptions>(options);
 
         var cpuArray = new double[1];
-        GlobalMemory.CopyDeviceToHost(output.Ptr, cpuArray, output.ByteWidth);
+        GlobalMemory.CopyDeviceToHost(output.Ptr, cpuArray, (int)output.ByteWidth);
 
         return cpuArray[0];
     }

@@ -16,6 +16,6 @@ public class PointwiseLogKernel : KernelBase<PointwiseOperationKernelOptions>
         var output = options.Output.Ptr;
         var length = options.Output.ByteWidth / sizeof(double);
             
-        PointwiseLog(input, output, length);
+        PointwiseLog(input, output, (int)length);
     }
 }

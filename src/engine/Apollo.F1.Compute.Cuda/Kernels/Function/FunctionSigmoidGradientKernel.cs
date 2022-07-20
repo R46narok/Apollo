@@ -16,6 +16,6 @@ public class FunctionSigmoidGradientKernel : KernelBase<FunctionKernelOptions>
         var output = options.Output.Ptr;
         var length = options.Output.ByteWidth / sizeof(double);
         
-        FunctionSigmoidGradient(input, output, length);
+        FunctionSigmoidGradient(input, output, (int)length);
     }
 }

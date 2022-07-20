@@ -17,6 +17,6 @@ public class PointwiseAdditionKernel : KernelBase<PointwiseKernelOptions>
         var output = options.Output.Ptr;
         var length = options.FirstOperand.ByteWidth / sizeof(double);
         
-        PointwiseAddition(first, second, output, length);
+        PointwiseAddition(first, second, output, (int)length);
     }
 }

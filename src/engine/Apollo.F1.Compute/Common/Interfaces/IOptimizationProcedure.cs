@@ -4,6 +4,6 @@ namespace Apollo.F1.Compute.Common.Interfaces;
 
 public interface IOptimizationProcedure
 {
-   public void Optimize(ICostFunction function, Matrix[] parameters, Matrix[] derivatives,
+   public void Optimize(ICostFunction function, Matrix[] parameters, 
       Matrix x, Matrix y);
 }
