@@ -170,18 +170,29 @@ public class NeuralNetwork : ICostFunction
     /// <returns>[training samples x number of output units] matrix, which contains the predictions</returns>
     public MatrixStorage FeedForward(MatrixStorage x)
     {
-        if(_preactivation is null) InitializeBufferBatches(700);
-
         var context = MatrixComputeContext.Create(MatrixStorage.Operations);
-        var a1 = x;
-
-        context = context.PerformOn(a1).And(_weightsTransposed[0]).MultiplyInto(_preactivation[0]);
-        context = context.PerformOnSelf(_preactivation[0]).ApplySigmoidFunction();
-        context = context.PerformOn(_preactivation[0]).Into(_activation[0]).InsertColumn(1.0);
-        context = context.PerformOn(_activation[0]).And(_weightsTransposed[1]).MultiplyInto(_preactivation[1]);
-        context = context.PerformOnSelf(_preactivation[1]).ApplySigmoidFunction();
         
-        return _preactivation[1];
+        var a1 = x;
+        var last = x;
+
+        var length = _layers.Length - 1; // excluding the first(input) layer
+        for (int i = 0; i < length; ++i)
+        {
+            context = context.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivation[i]);
+            context = context.PerformOnSelf(_preactivation[i]).ApplySigmoidFunction();
+
+            if (i != length - 1)
+            {
+                context = context.PerformOn(_preactivation[i]).Into(_activation[i]).InsertColumn(1.0);
+                last = _activation[i];
+            }
+            else
+            {
+                last = _preactivation[i];
+            }
+        }
+
+        return last;
     }
     
     // ReSharper disable once IdentifierTypo
