@@ -11,7 +11,7 @@ public class TransposeKernelOptions : KernelOptionsBase
     public int Rows { get; set; }
     public int Columns { get; set; }
 
-    public TransposeKernelOptions(Matrix input, Matrix output)
+    public TransposeKernelOptions(MatrixStorage input, MatrixStorage output)
     {
         Input = input.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;

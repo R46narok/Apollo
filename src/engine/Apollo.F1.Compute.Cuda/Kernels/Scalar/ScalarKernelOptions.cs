@@ -9,7 +9,7 @@ public class ScalarKernelOptions : KernelOptionsBase
     public GpuBuffer Input { get; set; }
     public double Scalar { get; set; }
 
-    public ScalarKernelOptions(Matrix input, Matrix output, double scalar)
+    public ScalarKernelOptions(MatrixStorage input, MatrixStorage output, double scalar)
     {
         Input = input.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;

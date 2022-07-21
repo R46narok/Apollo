@@ -11,7 +11,7 @@ public class InsertKernelOptions : KernelOptionsBase
     public int Columns { get; set; }
     public double Value { get; set; }
 
-    public InsertKernelOptions(Matrix input, Matrix output, double value)
+    public InsertKernelOptions(MatrixStorage input, MatrixStorage output, double value)
     {
         Input = input.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;

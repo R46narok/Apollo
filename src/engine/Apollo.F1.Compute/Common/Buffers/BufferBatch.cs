@@ -1,14 +1,23 @@
-﻿namespace Apollo.F1.Compute.Common.Buffers;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Apollo.F1.Compute.Common.Buffers;
+
+public enum BufferDataType : byte
+{
+    Unknown,
+    Double,
+    Float
+}
 
 public record class BufferBatchElement(int ByteWidth, BufferDataType DataType, string Name);
 
 public class BufferBatch : IDisposable
 {
-    private readonly Dictionary<string, IBuffer> _buffers = new ();
     private readonly IBufferAllocator _allocator;
+    private IBuffer[] _buffers = null!;
     private IBuffer _memoryPool = null!;
     
-    public IBuffer this[string key] => _buffers[key];
+    public IBuffer this[int idx] => _buffers[idx];
     
     public BufferBatch(IBufferAllocator allocator, BufferBatchElement[] elements)
     {
@@ -19,14 +28,17 @@ public class BufferBatch : IDisposable
 
     private void InitializeBuffers(BufferBatchElement[] elements)
     {
+        int length = elements.Length;
         int offset = 0;
-        foreach (var element in elements)
+        _buffers = new IBuffer[length];
+        
+        for (int i = 0; i < length; ++i)
         {
-            if (_buffers.ContainsKey(element.Name)) throw new ArgumentException();
+            var element = elements[i];
             var descriptor = new BufferDescriptor(element.ByteWidth, offset);
             var buffer = _allocator.TakeOwnership(_memoryPool.Ptr, descriptor);
-            
-            _buffers.Add(element.Name, buffer);
+
+            _buffers[i] = buffer;
             offset += element.ByteWidth;
         }
     }

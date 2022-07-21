@@ -11,7 +11,7 @@ public class RemoveKernelOptions : KernelOptionsBase
     public int Rows { get; set; }
     public int Columns { get; set; }
 
-    public RemoveKernelOptions(Matrix input, Matrix output, int index)
+    public RemoveKernelOptions(MatrixStorage input, MatrixStorage output, int index)
     {
         Input = input.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;

@@ -8,7 +8,7 @@ public class FunctionKernelOptions : KernelOptionsBase
 {
     public GpuBuffer Input { get; set; }
 
-    public FunctionKernelOptions(Matrix input, Matrix output)
+    public FunctionKernelOptions(MatrixStorage input, MatrixStorage output)
     {
         Input = input.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;

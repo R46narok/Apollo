@@ -11,7 +11,7 @@ public class SumKernelOptions : KernelOptionsBase
     public int Rows { get; set; }
     public int Columns { get; set; }
 
-    public SumKernelOptions(Matrix input, GpuBuffer output)
+    public SumKernelOptions(MatrixStorage input, GpuBuffer output)
     {
         Input = input.Buffer as GpuBuffer;
         Rows = input.Rows;

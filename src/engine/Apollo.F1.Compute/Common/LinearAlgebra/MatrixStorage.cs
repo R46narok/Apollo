@@ -5,17 +5,17 @@ using Apollo.F1.Compute.Exceptions;
 
 namespace Apollo.F1.Compute.Common.LinearAlgebra;
 
-public class Matrix : IEnumerable<double>
+public class MatrixStorage : IEnumerable<double>
 {
    public static IBufferAllocator BufferFactory { get; set; }
-   public static IMatrixOperations Operations { get; set; }
+   public static IMatrixHardwareAcceleration Operations { get; set; }
 
    public IBuffer Buffer { get; }
 
    public int Rows { get; private set; }
    public int Columns { get; private set; }
 
-   public Matrix(int rows, int columns)
+   public MatrixStorage(int rows, int columns)
    {
       Rows = rows;
       Columns = columns;
@@ -26,38 +26,38 @@ public class Matrix : IEnumerable<double>
       });
    }
 
-   public Matrix(IBuffer buffer, int rows, int columns)
+   public MatrixStorage(IBuffer buffer, int rows, int columns)
    {
       Rows = rows;
       Columns = columns;
       Buffer = buffer;
    }
 
-   public Matrix Add(Matrix other)
+   public MatrixStorage Add(MatrixStorage other)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other);
       return Operations.Add(this, other);
    }
 
-   public void Add(Matrix other, Matrix output)
+   public void Add(MatrixStorage other, MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other, output);
       Operations.Add(this, other, output);
    }
 
-   public Matrix Subtract(Matrix other)
+   public MatrixStorage Subtract(MatrixStorage other)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other);
       return Operations.Subtract(this, other);
    }
 
-   public void Subtract(Matrix other, Matrix output)
+   public void Subtract(MatrixStorage other, MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other, output);
       Operations.Subtract(this, other, output);
    }
 
-   public void Subtract(Matrix other, Matrix output, double scale)
+   public void Subtract(MatrixStorage other, MatrixStorage output, double scale)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other, output);
       Operations.Subtract(this, other, output, scale);
@@ -68,26 +68,26 @@ public class Matrix : IEnumerable<double>
       return Operations.Sum(this);
    }
 
-   public Matrix PointwiseMultiply(Matrix other)
+   public MatrixStorage PointwiseMultiply(MatrixStorage other)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other); 
       return Operations.PointwiseMultiply(this, other);
    }
 
-   public void PointwiseMultiply(Matrix other, Matrix output)
+   public void PointwiseMultiply(MatrixStorage other, MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, other, output);
       Operations.PointwiseMultiply(this, other, output);
    }
 
-   public Matrix Multiply(Matrix other)
+   public MatrixStorage Multiply(MatrixStorage other)
    {
       if (this.Columns != other.Rows)
              throw new ArgumentException();
       return Operations.Multiply(this, other);
    }
 
-   public void Multiply(Matrix other, Matrix result)
+   public void Multiply(MatrixStorage other, MatrixStorage result)
    {
       if (this.Columns != other.Rows)
          throw new ArgumentException();
@@ -99,78 +99,78 @@ public class Matrix : IEnumerable<double>
       Operations.Multiply(scalar, this, this);
    }
 
-   public void Multiply(double scalar, Matrix output)
+   public void Multiply(double scalar, MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, output);
       Operations.Multiply(scalar, this, output);
    }
 
-   public void PointwiseLog(Matrix output)
+   public void PointwiseLog(MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, output);
       Operations.PointwiseLog(this, output);
    }
 
-   public Matrix PointwiseLog() => Operations.PointwiseLog(this);
+   public MatrixStorage PointwiseLog() => Operations.PointwiseLog(this);
 
-   public Matrix Add(double scalar) => Operations.Add(this, scalar);
+   public MatrixStorage Add(double scalar) => Operations.Add(this, scalar);
 
-   public void Add(double scalar, Matrix output)
+   public void Add(double scalar, MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, output);
       Operations.Add(this, output, scalar);
    }
 
-   public void ApplySigmoid(Matrix output)
+   public void ApplySigmoid(MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, output);
       Operations.ApplySigmoid(this, output);
    }
 
-   public void ApplySigmoidGradient(Matrix output)
+   public void ApplySigmoidGradient(MatrixStorage output)
    {
       DimensionsMismatchException.ThrowIfNotEqual(this, output);
       Operations.ApplySigmoidGradient(this, output);
    }
 
-   public void InsertColumn(double value, Matrix output)
+   public void InsertColumn(double value, MatrixStorage output)
    {
       if (this.Rows != output.Rows || this.Columns + 1 != output.Columns)
          throw new ArgumentException();
       Operations.InsertColumn(this, output, value);
    }
 
-   public Matrix InsertColumn(double value)
+   public MatrixStorage InsertColumn(double value)
    {
       return Operations.InsertColumn(this, value);
    }
 
-   public void InsertRow(double value, Matrix output)
+   public void InsertRow(double value, MatrixStorage output)
    {
       if (this.Rows != output.Rows + 1 || this.Columns != output.Columns)
          throw new ArgumentException();
       Operations.InsertRow(this, output, value);
    }
 
-   public Matrix InsertRow(double value) => Operations.InsertRow(this, value);
+   public MatrixStorage InsertRow(double value) => Operations.InsertRow(this, value);
 
-   public void RemoveColumn(Matrix output)
+   public void RemoveColumn(MatrixStorage output)
    {
       if (this.Rows != output.Rows || this.Columns - 1 != output.Columns)
          throw new ArgumentException();
       Operations.RemoveColumn(this, output);
    }
 
-   public Matrix RemoveColumn() => Operations.RemoveColumn(this);
+   public MatrixStorage RemoveColumn() => Operations.RemoveColumn(this);
 
-   public void Transpose(Matrix output)
+   public void Transpose(MatrixStorage output)
    {
       if (this.Rows != output.Columns || this.Columns != output.Rows)
          throw new ArgumentException();
       Operations.Transpose(this, output);
    }
 
-   public Matrix Transpose() => Operations.Transpose(this);
+   public MatrixStorage Transpose() => Operations.Transpose(this);
    public IEnumerator<double> GetEnumerator()
    {
       var data = Buffer.Read();

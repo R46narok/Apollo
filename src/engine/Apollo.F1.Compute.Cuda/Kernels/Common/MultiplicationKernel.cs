@@ -18,7 +18,7 @@ public class MultiplicationKernelOptions : KernelOptionsBase
     {
     }
     
-    public MultiplicationKernelOptions(Matrix first, Matrix second, Matrix output)
+    public MultiplicationKernelOptions(MatrixStorage first, MatrixStorage second, MatrixStorage output)
     {
         FirstOperand = first.Buffer as GpuBuffer;
         SecondOperand = second.Buffer as GpuBuffer;

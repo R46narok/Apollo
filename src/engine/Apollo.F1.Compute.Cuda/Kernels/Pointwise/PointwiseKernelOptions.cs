@@ -10,7 +10,7 @@ public class PointwiseKernelOptions : KernelOptionsBase
     public GpuBuffer SecondOperand { get; set; }
     public double Scale { get; set; }
 
-    public PointwiseKernelOptions(Matrix first, Matrix second, Matrix output, double scale = 1.0)
+    public PointwiseKernelOptions(MatrixStorage first, MatrixStorage second, MatrixStorage output, double scale = 1.0)
     {
         FirstOperand = first.Buffer as GpuBuffer;
         SecondOperand = second.Buffer as GpuBuffer;
@@ -23,7 +23,7 @@ public class PointwiseOperationKernelOptions : KernelOptionsBase
 {
     public GpuBuffer Operand { get; set; }
 
-    public PointwiseOperationKernelOptions(Matrix input, Matrix output)
+    public PointwiseOperationKernelOptions(MatrixStorage input, MatrixStorage output)
     {
         Operand = input.Buffer as GpuBuffer;
         Output = output.Buffer as GpuBuffer;

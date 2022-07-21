@@ -6,8 +6,8 @@ using Apollo.F1.Compute.Learning;
 using Apollo.F1.Compute.Neural;
 using Apollo.F1.Compute.Optimization;
 
-Matrix.BufferFactory = new GlobalMemoryAllocator();
-Matrix.Operations = new GpuMatrixOperations();
+MatrixStorage.BufferFactory = new GlobalMemoryAllocator();
+MatrixStorage.Operations = new GpuMatrixOperations();
 
 var options = new NeuralNetworkOptions
 {
@@ -17,8 +17,8 @@ var nn = new NeuralNetwork(options);
 
 int samples = 700;
 
-var x = new Matrix(samples, 784);
-var y = new Matrix(samples, 10);
+var x = new MatrixStorage(samples, 784);
+var y = new MatrixStorage(samples, 10);
 
 using var rd = new StreamReader("mnist_train.csv");
 int line = -1;
@@ -49,8 +49,6 @@ y.Buffer.Upload(cpuY);
 x = x.InsertColumn(1.0);
 
 nn.GradientDescent(x, y);
-var procedure = new GradientDescent(0.25, 1000);
-procedure.Optimize(nn, nn._weights, x, y);
 
 using var rd2 = new StreamReader("mnist_test.csv");
 line = -1;
@@ -64,7 +62,7 @@ while (!rd.EndOfStream)
     if (line > 0)
     {
         var dd = Array.ConvertAll(splits, double.Parse);
-        var prediction = new Matrix(1, 784);
+        var prediction = new MatrixStorage(1, 784);
         var cpuData = new double[784];
         var label = dd[0];
         for (int i = 0; i < 784; ++i)

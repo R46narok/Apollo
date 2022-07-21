@@ -7,8 +7,8 @@ public class GradientDescent : IOptimizationProcedure
 {
     private readonly double _learningRate;
     private readonly int _iterations;
-    private Matrix[] _tempParameters = null!;
-    private Matrix[] _parametersTransposed = null!;
+    private MatrixStorage[] _tempParameters = null!;
+    private MatrixStorage[] _parametersTransposed = null!;
     
     public GradientDescent(double learningRate, int iterations)
     {
@@ -16,16 +16,16 @@ public class GradientDescent : IOptimizationProcedure
         _iterations = iterations;
     }
 
-    public void Optimize(ICostFunction function, Matrix[] parameters, Matrix x, Matrix y)
+    public void Optimize(ICostFunction function, MatrixStorage[] parameters, MatrixStorage x, MatrixStorage y)
     {
         int length = parameters.Length;
-        _tempParameters = new Matrix[length];
-        _parametersTransposed = new Matrix[length];
+        _tempParameters = new MatrixStorage[length];
+        _parametersTransposed = new MatrixStorage[length];
         
         for (int i = 0; i < length; ++i)
         {
-            _tempParameters[i] = new Matrix(parameters[i].Rows, parameters[i].Columns);
-            _parametersTransposed[i] = new Matrix(parameters[i].Columns, parameters[i].Rows);
+            _tempParameters[i] = new MatrixStorage(parameters[i].Rows, parameters[i].Columns);
+            _parametersTransposed[i] = new MatrixStorage(parameters[i].Columns, parameters[i].Rows);
         }
         
         for (int i = 0; i < _iterations; ++i)
