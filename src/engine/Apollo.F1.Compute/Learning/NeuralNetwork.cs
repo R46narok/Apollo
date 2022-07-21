@@ -175,28 +175,11 @@ public class NeuralNetwork : ICostFunction
         var context = MatrixComputeContext.Create(MatrixStorage.Operations);
         var a1 = x;
 
-        context = context
-            .PerformOn(a1)
-            .And(_weightsTransposed[0])
-            .MultiplyInto(_preactivation[0]);
-        
-        context = context
-            .PerformOnSelf(_preactivation[0])
-            .ApplySigmoidFunction();
-
-        context = context
-            .PerformOn(_preactivation[0])
-            .Into(_activation[0])
-            .InsertColumn(1.0);
-
-        context = context
-            .PerformOn(_activation[0])
-            .And(_weightsTransposed[1])
-            .MultiplyInto(_preactivation[1]);
-
-        context = context
-            .PerformOnSelf(_preactivation[1])
-            .ApplySigmoidFunction();
+        context = context.PerformOn(a1).And(_weightsTransposed[0]).MultiplyInto(_preactivation[0]);
+        context = context.PerformOnSelf(_preactivation[0]).ApplySigmoidFunction();
+        context = context.PerformOn(_preactivation[0]).Into(_activation[0]).InsertColumn(1.0);
+        context = context.PerformOn(_activation[0]).And(_weightsTransposed[1]).MultiplyInto(_preactivation[1]);
+        context = context.PerformOnSelf(_preactivation[1]).ApplySigmoidFunction();
         
         return _preactivation[1];
     }
@@ -212,55 +195,19 @@ public class NeuralNetwork : ICostFunction
         
         // Vectorized implementation of backpropagation
         var a1 = x;
-        context = context
-            .PerformOn(a1)
-            .And(_weightsTransposed[0])
-            .MultiplyInto(_preactivation[0]);
-
-        context = context
-            .PerformOn(a1)
-            .And(_weightsTransposed[0])
-            .MultiplyInto(_z2Gradient);
-
-        context = context
-            .PerformOnSelf(_preactivation[0])
-            .ApplySigmoidFunction();
-
-        context = context
-            .PerformOn(_preactivation[0])
-            .Into(_z2Gradient)
-            .ApplySigmoidGradientFunction();
-
-        context = context
-            .PerformOn(_preactivation[0])
-            .Into(_activation[0])
-            .InsertColumn(1.0);
-
-        context = context
-            .PerformOn(_activation[0])
-            .And(_weightsTransposed[1])
-            .MultiplyInto(_preactivation[1]);
-        
-        context = context
-            .PerformOnSelf(_preactivation[1])
-            .ApplySigmoidFunction();
+        context = context.PerformOn(a1).And(_weightsTransposed[0]).MultiplyInto(_preactivation[0]);
+        context = context.PerformOn(a1).And(_weightsTransposed[0]).MultiplyInto(_z2Gradient);
+        context = context.PerformOnSelf(_preactivation[0]).ApplySigmoidFunction();
+        context = context.PerformOn(_preactivation[0]).Into(_z2Gradient).ApplySigmoidGradientFunction();
+        context = context.PerformOn(_preactivation[0]).Into(_activation[0]).InsertColumn(1.0);
+        context = context.PerformOn(_activation[0]).And(_weightsTransposed[1]).MultiplyInto(_preactivation[1]);
+        context = context.PerformOnSelf(_preactivation[1]).ApplySigmoidFunction();
         
         var a3 = _preactivation[1];
 
-        context = context
-            .PerformOn(a3)
-            .And(y)
-            .PointwiseSubtractInto(_errors[1]);
-
-        context = context
-            .PerformOn(_errors[1])
-            .And(_weights[1])
-            .MultiplyInto(_delta2Biased);
-
-        context = context
-            .PerformOn(_z2Gradient)
-            .Into(_z2GradientBiased)
-            .InsertColumn(1.0);
+        context = context.PerformOn(a3).And(y).PointwiseSubtractInto(_errors[1]);
+        context = context.PerformOn(_errors[1]).And(_weights[1]).MultiplyInto(_delta2Biased);
+        context = context.PerformOn(_z2Gradient).Into(_z2GradientBiased).InsertColumn(1.0);
 
         _delta2Biased.PointwiseMultiply(_z2GradientBiased, _delta2Biased);
         _delta2Biased.RemoveColumn(_delta2);
@@ -278,25 +225,11 @@ public class NeuralNetwork : ICostFunction
          //_delta2.Transpose(_delta2Transposed);
          //_delta2Transposed.Multiply(a1, _derivatives[0]);
         
-        context = context
-            .PerformOn(_delta2)
-            .Into(_delta2Transposed)
-            .Transpose();
+        context = context.PerformOn(_delta2).Into(_delta2Transposed).Transpose();
+        context = context.PerformOn(_delta2Transposed).And(a1).MultiplyInto(_derivatives[0]);
+        context = context.PerformOn(_delta3).Into(_delta3Transposed).Transpose();
 
-        context = context
-            .PerformOn(_delta2Transposed)
-            .And(a1)
-            .MultiplyInto(_derivatives[0]);
-        
-        context = context
-            .PerformOn(_delta3)
-            .Into(_delta3Transposed)
-            .Transpose();
-
-        context = context
-            .PerformOn(_delta3Transposed)
-            .And(_preactivation[0])
-            .MultiplyInto(_derivatives[1]);
+        context = context.PerformOn(_delta3Transposed).And(_preactivation[0]).MultiplyInto(_derivatives[1]);
         
         int m = x.Rows;
         _derivatives[0].Multiply(1.0 / m);
