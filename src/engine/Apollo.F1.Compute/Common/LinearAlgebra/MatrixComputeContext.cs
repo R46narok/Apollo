@@ -19,6 +19,7 @@ public interface IMatrixOutput
     public IMatrixComputationSelectionStage InsertColumn(double scalar);
     public IMatrixComputationSelectionStage ApplySigmoidFunction();
     public IMatrixComputationSelectionStage ApplySigmoidGradientFunction();
+    public IMatrixComputationSelectionStage MultiplyBy(double scalar);
 
     public IMatrixComputationSelectionStage PointwiseMultiplyInto(MatrixStorage output);
     public IMatrixComputationSelectionStage PointwiseSubtractInto(MatrixStorage output);
@@ -89,6 +90,13 @@ public class MatrixComputeContext : IMatrixComputationSelectionStage, IMatrixAdd
     {
         EnsureBothOperandsNotNull();
         _acceleration.ApplySigmoidGradient(_firstOperand!, _secondOperand!);
+        return ResetOperands();
+    }
+
+    public IMatrixComputationSelectionStage MultiplyBy(double scalar)
+    {
+        EnsureBothOperandsNotNull();
+        _acceleration.Multiply(scalar, _firstOperand, _secondOperand);
         return ResetOperands();
     }
 

@@ -47,7 +47,7 @@ x.Buffer.Upload(cpuX);
 y.Buffer.Upload(cpuY);
 
 x = x.InsertColumn(1.0);
-
+nn.InitFF(x);
 nn.GradientDescent(x, y);
 
 using var rd2 = new StreamReader("mnist_test.csv");

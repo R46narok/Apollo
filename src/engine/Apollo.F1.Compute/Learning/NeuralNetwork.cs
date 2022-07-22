@@ -6,6 +6,7 @@ using Apollo.F1.Compute.Exceptions;
 using Apollo.F1.Compute.Neural;
 using Apollo.F1.Compute.Common;
 using Apollo.F1.Compute.Common.Buffers;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace Apollo.F1.Compute.Learning;
 
@@ -33,6 +34,8 @@ public class NeuralNetwork : ICostFunction
         _distributionLowerBound = options.DistributionBoundaries.Item1;
         _distributionUpperBound = options.DistributionBoundaries.Item2;
         _matrixOperations = MatrixStorage.Operations;
+
+        OutputLayerIdx = _layers.Length - 1;
         
         ValidateNetworkArchitecture();
         InitializeWeights();
@@ -92,50 +95,41 @@ public class NeuralNetwork : ICostFunction
         }
     }
 
-    public MatrixStorage _z2;
-    public MatrixStorage _z2Gradient;
-    public MatrixStorage _z2GradientBiased;
-    public MatrixStorage _z3;
-    public MatrixStorage _a2;
-    public MatrixStorage _delta3;
-    public MatrixStorage _delta3Transposed;
-    public MatrixStorage _delta2Transposed;
-    public MatrixStorage _delta2;
-    public MatrixStorage _delta2Biased;
     public MatrixStorage _hNegative;
     public MatrixStorage _yNegative;
     
     public void InitFF(MatrixStorage x)
     {
-        _z2 = new MatrixStorage(x.Rows, _weightsTransposed[0].Columns);
-        _z2Gradient = new MatrixStorage(x.Rows, _weightsTransposed[0].Columns);
-        _z2GradientBiased = new MatrixStorage(x.Rows, _weightsTransposed[0].Columns + 1);
-        _a2 = new MatrixStorage(x.Rows, _weightsTransposed[0].Columns + 1);
-        _z3 = new MatrixStorage(x.Rows, _weightsTransposed[1].Columns);
-
-        _delta3 = new MatrixStorage(x.Rows, _weightsTransposed[1].Columns);
-        _delta3Transposed = new MatrixStorage(_delta3.Columns, _delta3.Rows);
-        _delta2 = new MatrixStorage(_delta3.Rows, _weights[1].Columns - 1);
-        _delta2Transposed = new MatrixStorage(_delta2.Columns, _delta2.Rows);
-        _delta2Biased = new MatrixStorage(_delta3.Rows, _weights[1].Columns);
-
         _hNegative = new MatrixStorage(x.Rows, _weights[1].Rows);
         _yNegative = new MatrixStorage(x.Rows, _weights[1].Rows);
     }
 
     private BufferBatch _preactivationBatch;
+    private BufferBatch _preactivationGradientBatch;
+    private BufferBatch _preactivationGradientBiasedBatch;
     private BufferBatch _activationBatch;
     private BufferBatch _errorBatch;
     private BufferBatch _errorsTransposedBatch;
+    private BufferBatch _errorsBiasedBatch;
     private MatrixStorage[] _preactivation = null!;
+    private MatrixStorage[] _preactivationGradient = null!;
+    private MatrixStorage[] _preactivationGradientBiased = null!;
     private MatrixStorage[] _activation;
     private MatrixStorage[] _errors = null!;
     private MatrixStorage[] _errorsTransposed = null!;
+    private MatrixStorage[] _errorsBiased = null!;
 
     private void InitializeBufferBatches(int samples)
     {
         InitializeBatchAsMatrixArray(out _preactivationBatch, out _preactivation, _layers.Length - 1,
             i => samples, i => _weightsTransposed[i].Columns, BufferDataType.Double, "preactivation");
+        
+        InitializeBatchAsMatrixArray(out _preactivationGradientBatch, out _preactivationGradient, _layers.Length - 1,
+                       i => samples, i => _weightsTransposed[i].Columns, BufferDataType.Double, "preactivation");
+
+        InitializeBatchAsMatrixArray(out _preactivationGradientBiasedBatch, out _preactivationGradientBiased,
+            _layers.Length - 1,
+            i => samples, i => _weightsTransposed[i].Columns + 1, BufferDataType.Double, "preactivation");
         
         InitializeBatchAsMatrixArray(out _activationBatch, out _activation, _layers.Length - 1,
             i => samples, i=> _weightsTransposed[i].Columns + 1, BufferDataType.Double, "activation");
@@ -145,6 +139,9 @@ public class NeuralNetwork : ICostFunction
         
         InitializeBatchAsMatrixArray(out _errorsTransposedBatch, out _errorsTransposed, _layers.Length - 1,
             i => _weightsTransposed[i].Columns, i => samples, BufferDataType.Double, "errorsTransposed");
+        
+        InitializeBatchAsMatrixArray(out _errorsBiasedBatch, out _errorsBiased, _layers.Length - 2,
+            i => samples, i=> _weightsTransposed[i].Columns + 1, BufferDataType.Double, "errorsTransposed");
     }
 
     private void InitializeBatchAsMatrixArray(out BufferBatch batch, out MatrixStorage[] matrices,
@@ -162,28 +159,46 @@ public class NeuralNetwork : ICostFunction
             matrices[i] = new MatrixStorage(batch[i], rowFunction(i), columnFunction(i));
     }
 
+    private const int InputLayerIdx = 0;
+    private readonly int OutputLayerIdx;
+
+    private bool IsOutputLayer(int idx) => idx == OutputLayerIdx;
+    private bool IsInputLayer(int idx) => idx == InputLayerIdx;
+    private bool IsHiddenLayer(int idx) => !IsInputLayer(idx) && !IsOutputLayer(idx);
+    
+    private bool IsNotOutputLayer(int idx) => !IsOutputLayer(idx);
+    private bool IsNotInputLayer(int idx) => !IsInputLayer(idx);
+    private bool IsNotHiddenLayer(int idx) => !IsHiddenLayer(idx);
+
+    
     /// <summary>
     /// Computes the output of a neural network based on a given input
     /// using the forward propagation algorithm.
     /// </summary>
-    /// <param name="x">Input values(requires already added bias value)</param>
+    /// <param name="x">Matrix for the input layer with already added bias column</param>
+    /// <param name="computeGradients"></param>
     /// <returns>[training samples x number of output units] matrix, which contains the predictions</returns>
-    public MatrixStorage FeedForward(MatrixStorage x)
+    public MatrixStorage FeedForward(MatrixStorage x, bool computeGradients = false)
     {
         var context = MatrixComputeContext.Create(MatrixStorage.Operations);
         
-        var a1 = x;
         var last = x;
 
         var length = _layers.Length - 1; // excluding the first(input) layer
         for (int i = 0; i < length; ++i)
         {
-            context = context.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivation[i]);
-            context = context.PerformOnSelf(_preactivation[i]).ApplySigmoidFunction();
+            context.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivation[i]); // preactivation of the current layer
+            context.PerformOnSelf(_preactivation[i]).ApplySigmoidFunction(); // activation of the current layer
 
-            if (i != length - 1)
+            if (computeGradients && IsHiddenLayer(i + 1))
             {
-                context = context.PerformOn(_preactivation[i]).Into(_activation[i]).InsertColumn(1.0);
+                context.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivationGradient[i]);
+                context.PerformOnSelf(_preactivationGradient[i]).ApplySigmoidGradientFunction();
+            }
+            
+            if (IsNotOutputLayer(i + 1)) // no bias term added for the output layer
+            {
+                context.PerformOn(_preactivation[i]).Into(_activation[i]).InsertColumn(1.0); // fully activated layer (added bias)
                 last = _activation[i];
             }
             else
@@ -192,64 +207,45 @@ public class NeuralNetwork : ICostFunction
             }
         }
 
-        return last;
+        return last; // Output layer predictions
     }
     
-    // ReSharper disable once IdentifierTypo
-    public void Backpropagate(MatrixStorage x, MatrixStorage y)
+    /// <summary>
+    /// Vectorized impl of backpropagation 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    private void Backpropagation(MatrixStorage x, MatrixStorage y)
     {
-        if(_z2 is null) InitFF(x);
-
         ResetErrorTerms();
-
+        
         var context = MatrixComputeContext.Create(MatrixStorage.Operations);
-        
-        // Vectorized implementation of backpropagation
-        var a1 = x;
-        context = context.PerformOn(a1).And(_weightsTransposed[0]).MultiplyInto(_preactivation[0]);
-        context = context.PerformOn(a1).And(_weightsTransposed[0]).MultiplyInto(_z2Gradient);
-        context = context.PerformOnSelf(_preactivation[0]).ApplySigmoidFunction();
-        context = context.PerformOn(_preactivation[0]).Into(_z2Gradient).ApplySigmoidGradientFunction();
-        context = context.PerformOn(_preactivation[0]).Into(_activation[0]).InsertColumn(1.0);
-        context = context.PerformOn(_activation[0]).And(_weightsTransposed[1]).MultiplyInto(_preactivation[1]);
-        context = context.PerformOnSelf(_preactivation[1]).ApplySigmoidFunction();
-        
-        var a3 = _preactivation[1];
+        var prediction = FeedForward(x, true);
 
-        context = context.PerformOn(a3).And(y).PointwiseSubtractInto(_errors[1]);
-        context = context.PerformOn(_errors[1]).And(_weights[1]).MultiplyInto(_delta2Biased);
-        context = context.PerformOn(_z2Gradient).Into(_z2GradientBiased).InsertColumn(1.0);
+        context.PerformOn(prediction).And(y).PointwiseSubtractInto(_errors[1]);
+        for (int i = OutputLayerIdx - 1; i >= InputLayerIdx + 1; --i)
+        {
+            context.PerformOn(_errors[i]).And(_weights[i]).MultiplyInto(_errorsBiased[i - 1]);
+            context.PerformOn(_preactivationGradient[i - 1]).Into(_preactivationGradientBiased[i - 1]).InsertColumn(1.0);
 
-        _delta2Biased.PointwiseMultiply(_z2GradientBiased, _delta2Biased);
-        _delta2Biased.RemoveColumn(_delta2);
-        
-        /*context = context
-            .PerformOn(_delta2Biased)
-            .And(_z2GradientBiased)
-            .PointwiseMultiplyInto(_delta2Biased);*/
+            context.PerformOn(_errorsBiased[i - 1]).And(_preactivationGradientBiased[i - 1]).PointwiseMultiplyInto(_errorsBiased[i - 1]);
+            context.PerformOn(_errorsBiased[i - 1]).Into(_errors[i - 1]).RemoveColumn();
+        }
 
-        /*context = context
-            .PerformOn(_delta2Biased)
-            .Into(_delta2)
-            .RemoveColumn();*/
-
-         //_delta2.Transpose(_delta2Transposed);
-         //_delta2Transposed.Multiply(a1, _derivatives[0]);
-        
-        context = context.PerformOn(_delta2).Into(_delta2Transposed).Transpose();
-        context = context.PerformOn(_delta2Transposed).And(a1).MultiplyInto(_derivatives[0]);
-        context = context.PerformOn(_delta3).Into(_delta3Transposed).Transpose();
-
-        context = context.PerformOn(_delta3Transposed).And(_preactivation[0]).MultiplyInto(_derivatives[1]);
-        
-        int m = x.Rows;
-        _derivatives[0].Multiply(1.0 / m);
-        _derivatives[1].Multiply(1.0 / m);
+        var layer = x;
+        int samples = x.Rows;
+        for (int i = 0; i < _errors.Length; ++i)
+        {
+            context.PerformOn(_errors[i]).Into(_errorsTransposed[i]).Transpose();
+            context.PerformOn(_errorsTransposed[i]).And(layer).MultiplyInto(_derivatives[i]);
+            context.PerformOnSelf(_derivatives[i]).MultiplyBy(1.0 / samples);
+            
+            layer = _preactivation[i];
+        }
     }
 
     public double ComputeCost(MatrixStorage x, MatrixStorage y)
     {
-        if(_z2 is null) InitFF(x);
         double cost = 0.0;
         int m = x.Rows;
 
@@ -274,7 +270,7 @@ public class NeuralNetwork : ICostFunction
 
     public MatrixStorage[] ComputeDerivatives(MatrixStorage x, MatrixStorage y)
     {
-        Backpropagate(x, y);
+        Backpropagation(x, y);
         return _derivatives;
     }
 
@@ -300,7 +296,7 @@ public class NeuralNetwork : ICostFunction
             
             if (i % 200 == 0) 
                 Console.WriteLine($"Iteration {i}, Cost: {ComputeCost(x, y)}");
-            Backpropagate(x, y);
+            Backpropagation(x, y);
         }
     }
     
