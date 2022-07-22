@@ -1,12 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Formats.Asn1;
-using Apollo.F1.Compute.Common.Interfaces;
+﻿using Apollo.F1.Compute.Common.Interfaces;
 using Apollo.F1.Compute.Common.LinearAlgebra;
 using Apollo.F1.Compute.Exceptions;
 using Apollo.F1.Compute.Neural;
-using Apollo.F1.Compute.Common;
 using Apollo.F1.Compute.Common.Buffers;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace Apollo.F1.Compute.Learning;
 
@@ -18,11 +14,11 @@ public class NeuralNetwork : ICostFunction
     private readonly double _distributionUpperBound;
     private readonly double _distributionLowerBound;
     private readonly IMatrixHardwareAcceleration _matrixOperations;
-    
-    public MatrixStorage[] _weights = null!;
+
+    private MatrixStorage[] _weights = null!;
     private MatrixStorage[] _tempWeights = null!;
-    public MatrixStorage[] _weightsTransposed = null!;
-    public MatrixStorage[] _derivatives = null!;
+    private MatrixStorage[] _weightsTransposed = null!;
+    private MatrixStorage[] _derivatives = null!;
     
     public NeuralNetwork(NeuralNetworkOptions options)
     {
@@ -40,7 +36,6 @@ public class NeuralNetwork : ICostFunction
         ValidateNetworkArchitecture();
         InitializeWeights();
         InitializeDerivatives();
-        InitializeBufferBatches(700);
         InitializeBiasNeurons();
     }
 
@@ -95,15 +90,6 @@ public class NeuralNetwork : ICostFunction
         }
     }
 
-    public MatrixStorage _hNegative;
-    public MatrixStorage _yNegative;
-    
-    public void InitFF(MatrixStorage x)
-    {
-        _hNegative = new MatrixStorage(x.Rows, _weights[1].Rows);
-        _yNegative = new MatrixStorage(x.Rows, _weights[1].Rows);
-    }
-
     private BufferBatch _preactivationBatch;
     private BufferBatch _preactivationGradientBatch;
     private BufferBatch _preactivationGradientBiasedBatch;
@@ -111,6 +97,7 @@ public class NeuralNetwork : ICostFunction
     private BufferBatch _errorBatch;
     private BufferBatch _errorsTransposedBatch;
     private BufferBatch _errorsBiasedBatch;
+    private BufferBatch _negativeOutputBatch;
     private MatrixStorage[] _preactivation = null!;
     private MatrixStorage[] _preactivationGradient = null!;
     private MatrixStorage[] _preactivationGradientBiased = null!;
@@ -118,30 +105,41 @@ public class NeuralNetwork : ICostFunction
     private MatrixStorage[] _errors = null!;
     private MatrixStorage[] _errorsTransposed = null!;
     private MatrixStorage[] _errorsBiased = null!;
+    private MatrixStorage[] _negativeOutput = null!;
 
-    private void InitializeBufferBatches(int samples)
+    public void InitializeBufferBatches(int samples)
     {
-        InitializeBatchAsMatrixArray(out _preactivationBatch, out _preactivation, _layers.Length - 1,
-            i => samples, i => _weightsTransposed[i].Columns, BufferDataType.Double, "preactivation");
+        InitializeBatchAsMatrixArray(out _preactivationBatch, out _preactivation, 
+            _layers.Length - 1, i => samples, i => _weightsTransposed[i].Columns,
+            BufferDataType.Double, "preactivation");
         
-        InitializeBatchAsMatrixArray(out _preactivationGradientBatch, out _preactivationGradient, _layers.Length - 1,
-                       i => samples, i => _weightsTransposed[i].Columns, BufferDataType.Double, "preactivation");
+        InitializeBatchAsMatrixArray(out _preactivationGradientBatch, out _preactivationGradient, 
+            _layers.Length - 1, i => samples, i => _weightsTransposed[i].Columns, 
+            BufferDataType.Double, "preactivation");
 
-        InitializeBatchAsMatrixArray(out _preactivationGradientBiasedBatch, out _preactivationGradientBiased,
-            _layers.Length - 1,
-            i => samples, i => _weightsTransposed[i].Columns + 1, BufferDataType.Double, "preactivation");
+        InitializeBatchAsMatrixArray(out _preactivationGradientBiasedBatch, out _preactivationGradientBiased, 
+            _layers.Length - 1, i => samples, i => _weightsTransposed[i].Columns + 1, 
+            BufferDataType.Double, "preactivation");
         
-        InitializeBatchAsMatrixArray(out _activationBatch, out _activation, _layers.Length - 1,
-            i => samples, i=> _weightsTransposed[i].Columns + 1, BufferDataType.Double, "activation");
+        InitializeBatchAsMatrixArray(out _activationBatch, out _activation, 
+            _layers.Length - 1, i => samples, i=> _weightsTransposed[i].Columns + 1, 
+            BufferDataType.Double, "activation");
         
-        InitializeBatchAsMatrixArray(out _errorBatch, out _errors, _layers.Length - 1,
-            i => samples, i => _weightsTransposed[i].Columns, BufferDataType.Double, "errors");
+        InitializeBatchAsMatrixArray(out _errorBatch, out _errors,
+            _layers.Length - 1, i => samples, i => _weightsTransposed[i].Columns, 
+            BufferDataType.Double, "errors");
         
-        InitializeBatchAsMatrixArray(out _errorsTransposedBatch, out _errorsTransposed, _layers.Length - 1,
-            i => _weightsTransposed[i].Columns, i => samples, BufferDataType.Double, "errorsTransposed");
+        InitializeBatchAsMatrixArray(out _errorsTransposedBatch, out _errorsTransposed, 
+            _layers.Length - 1, i => _weightsTransposed[i].Columns, i => samples, 
+            BufferDataType.Double, "errorsTransposed");
         
-        InitializeBatchAsMatrixArray(out _errorsBiasedBatch, out _errorsBiased, _layers.Length - 2,
-            i => samples, i=> _weightsTransposed[i].Columns + 1, BufferDataType.Double, "errorsTransposed");
+        InitializeBatchAsMatrixArray(out _errorsBiasedBatch, out _errorsBiased, 
+            _layers.Length - 2, i => samples, i=> _weightsTransposed[i].Columns + 1, 
+            BufferDataType.Double, "errorsTransposed");
+        
+        InitializeBatchAsMatrixArray(out _negativeOutputBatch, out _negativeOutput, 
+                    2, i => samples, i=> _weightsTransposed[1].Columns, 
+                    BufferDataType.Double, "errorsTransposed");
     }
 
     private void InitializeBatchAsMatrixArray(out BufferBatch batch, out MatrixStorage[] matrices,
@@ -246,32 +244,28 @@ public class NeuralNetwork : ICostFunction
 
     public double ComputeCost(MatrixStorage x, MatrixStorage y)
     {
-        double cost = 0.0;
+        var hypothesis = FeedForward(x);
+
+        const int hypothesisIdx = 0;
+        const int yIdx = 1;
+        
+        y.Multiply(-1.0, _negativeOutput[yIdx]);
+        hypothesis.Multiply(-1.0, _negativeOutput[hypothesisIdx]);
+
+        hypothesis.PointwiseLog(hypothesis);
+        _negativeOutput[yIdx].PointwiseMultiply(hypothesis, hypothesis);
+
+        _negativeOutput[yIdx].Add(1.0, _negativeOutput[yIdx]);
+        _negativeOutput[hypothesisIdx].Add(1.0, _negativeOutput[hypothesisIdx]);
+        _negativeOutput[hypothesisIdx].PointwiseLog(_negativeOutput[hypothesisIdx]);
+        _negativeOutput[yIdx].PointwiseMultiply(_negativeOutput[hypothesisIdx], _negativeOutput[yIdx]);
+        
+        hypothesis.Subtract(_negativeOutput[yIdx], hypothesis);
+        
         int m = x.Rows;
-
-        var h = FeedForward(x);
+        double cost = hypothesis.Sum();
         
-        y.Multiply(-1.0, _yNegative);
-        h.Multiply(-1.0, _hNegative);
-
-        h.PointwiseLog(h);
-        _yNegative.PointwiseMultiply(h, h);
-
-        _yNegative.Add(1.0, _yNegative);
-        _hNegative.Add(1.0, _hNegative);
-        _hNegative.PointwiseLog(_hNegative);
-        _yNegative.PointwiseMultiply(_hNegative, _yNegative);
-        
-        h.Subtract(_yNegative, h);
-        cost = h.Sum();
-        
-        return cost / (double)m;
-    }
-
-    public MatrixStorage[] ComputeDerivatives(MatrixStorage x, MatrixStorage y)
-    {
-        Backpropagation(x, y);
-        return _derivatives;
+        return cost / m;
     }
 
     public void GradientDescent(MatrixStorage x, MatrixStorage y)
