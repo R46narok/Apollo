@@ -4,6 +4,9 @@ public interface IMatrixComputationSelectionStage
 {
     public IMatrixAdditionalSelectionStage PerformOn(MatrixStorage operand);
     public IMatrixOutput PerformOnSelf(MatrixStorage operand);
+
+    public void PushRange(string name);
+    public void PopRange();
 }
 
 public interface IMatrixAdditionalSelectionStage
@@ -20,7 +23,8 @@ public interface IMatrixOutput
     public IMatrixComputationSelectionStage ApplySigmoidFunction();
     public IMatrixComputationSelectionStage ApplySigmoidGradientFunction();
     public IMatrixComputationSelectionStage MultiplyBy(double scalar);
-
+    public IMatrixComputationSelectionStage Add(double scalar);
+    public IMatrixComputationSelectionStage Log();
     public IMatrixComputationSelectionStage PointwiseMultiplyInto(MatrixStorage output);
     public IMatrixComputationSelectionStage PointwiseSubtractInto(MatrixStorage output);
 
@@ -51,6 +55,16 @@ public class MatrixComputeContext : IMatrixComputationSelectionStage, IMatrixAdd
         _firstOperand = operand;
         _secondOperand = operand;
         return this;
+    }
+
+    public void PushRange(string name)
+    {
+        _acceleration.GetRange().Push(name);
+    }
+
+    public void PopRange()
+    {
+        _acceleration.GetRange().Pop();
     }
 
     public IMatrixOutput And(MatrixStorage operand)
@@ -98,6 +112,20 @@ public class MatrixComputeContext : IMatrixComputationSelectionStage, IMatrixAdd
         EnsureBothOperandsNotNull();
         _acceleration.Multiply(scalar, _firstOperand, _secondOperand);
         return ResetOperands();
+    }
+
+    public IMatrixComputationSelectionStage Add(double scalar)
+    {
+        EnsureBothOperandsNotNull();
+        _acceleration.Add(_firstOperand, _secondOperand, scalar);
+        return ResetOperands();
+    }
+
+    public IMatrixComputationSelectionStage Log()
+    {
+       EnsureBothOperandsNotNull();
+       _acceleration.PointwiseLog(_firstOperand, _secondOperand);
+       return ResetOperands();
     }
 
     public IMatrixComputationSelectionStage PointwiseMultiplyInto(MatrixStorage output)

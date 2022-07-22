@@ -13,7 +13,7 @@ public class NeuralNetwork : ICostFunction
     private readonly double _regularizationTerm;
     private readonly double _distributionUpperBound;
     private readonly double _distributionLowerBound;
-    private readonly IMatrixHardwareAcceleration _matrixOperations;
+    private readonly IMatrixHardwareAcceleration _acceleration;
 
     private MatrixStorage[] _weights = null!;
     private MatrixStorage[] _tempWeights = null!;
@@ -29,7 +29,7 @@ public class NeuralNetwork : ICostFunction
         _regularizationTerm = options.RegularizationTerm;
         _distributionLowerBound = options.DistributionBoundaries.Item1;
         _distributionUpperBound = options.DistributionBoundaries.Item2;
-        _matrixOperations = MatrixStorage.Operations;
+        _acceleration = MatrixStorage.Operations;
 
         OutputLayerIdx = _layers.Length - 1;
         
@@ -178,25 +178,25 @@ public class NeuralNetwork : ICostFunction
     /// <returns>[training samples x number of output units] matrix, which contains the predictions</returns>
     public MatrixStorage FeedForward(MatrixStorage x, bool computeGradients = false)
     {
-        var context = MatrixComputeContext.Create(MatrixStorage.Operations);
+        var compute = MatrixComputeContext.Create(_acceleration);
+        compute.PushRange("Forward propagation");
         
         var last = x;
-
         var length = _layers.Length - 1; // excluding the first(input) layer
         for (int i = 0; i < length; ++i)
         {
-            context.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivation[i]); // preactivation of the current layer
-            context.PerformOnSelf(_preactivation[i]).ApplySigmoidFunction(); // activation of the current layer
+            compute.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivation[i]); // preactivation of the current layer
+            compute.PerformOnSelf(_preactivation[i]).ApplySigmoidFunction(); // activation of the current layer
 
             if (computeGradients && IsHiddenLayer(i + 1))
             {
-                context.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivationGradient[i]);
-                context.PerformOnSelf(_preactivationGradient[i]).ApplySigmoidGradientFunction();
+                compute.PerformOn(last).And(_weightsTransposed[i]).MultiplyInto(_preactivationGradient[i]);
+                compute.PerformOnSelf(_preactivationGradient[i]).ApplySigmoidGradientFunction();
             }
             
             if (IsNotOutputLayer(i + 1)) // no bias term added for the output layer
             {
-                context.PerformOn(_preactivation[i]).Into(_activation[i]).InsertColumn(1.0); // fully activated layer (added bias)
+                compute.PerformOn(_preactivation[i]).Into(_activation[i]).InsertColumn(1.0); // fully activated layer (added bias)
                 last = _activation[i];
             }
             else
@@ -205,6 +205,7 @@ public class NeuralNetwork : ICostFunction
             }
         }
 
+        compute.PopRange();
         return last; // Output layer predictions
     }
     
@@ -217,26 +218,26 @@ public class NeuralNetwork : ICostFunction
     {
         ResetErrorTerms();
         
-        var context = MatrixComputeContext.Create(MatrixStorage.Operations);
+        var compute = MatrixComputeContext.Create(_acceleration);
         var prediction = FeedForward(x, true);
 
-        context.PerformOn(prediction).And(y).PointwiseSubtractInto(_errors[1]);
+        compute.PerformOn(prediction).And(y).PointwiseSubtractInto(_errors[1]);
         for (int i = OutputLayerIdx - 1; i >= InputLayerIdx + 1; --i)
         {
-            context.PerformOn(_errors[i]).And(_weights[i]).MultiplyInto(_errorsBiased[i - 1]);
-            context.PerformOn(_preactivationGradient[i - 1]).Into(_preactivationGradientBiased[i - 1]).InsertColumn(1.0);
+            compute.PerformOn(_errors[i]).And(_weights[i]).MultiplyInto(_errorsBiased[i - 1]);
+            compute.PerformOn(_preactivationGradient[i - 1]).Into(_preactivationGradientBiased[i - 1]).InsertColumn(1.0);
 
-            context.PerformOn(_errorsBiased[i - 1]).And(_preactivationGradientBiased[i - 1]).PointwiseMultiplyInto(_errorsBiased[i - 1]);
-            context.PerformOn(_errorsBiased[i - 1]).Into(_errors[i - 1]).RemoveColumn();
+            compute.PerformOn(_errorsBiased[i - 1]).And(_preactivationGradientBiased[i - 1]).PointwiseMultiplyInto(_errorsBiased[i - 1]);
+            compute.PerformOn(_errorsBiased[i - 1]).Into(_errors[i - 1]).RemoveColumn();
         }
 
         var layer = x;
         int samples = x.Rows;
         for (int i = 0; i < _errors.Length; ++i)
         {
-            context.PerformOn(_errors[i]).Into(_errorsTransposed[i]).Transpose();
-            context.PerformOn(_errorsTransposed[i]).And(layer).MultiplyInto(_derivatives[i]);
-            context.PerformOnSelf(_derivatives[i]).MultiplyBy(1.0 / samples);
+            compute.PerformOn(_errors[i]).Into(_errorsTransposed[i]).Transpose();
+            compute.PerformOn(_errorsTransposed[i]).And(layer).MultiplyInto(_derivatives[i]);
+            compute.PerformOnSelf(_derivatives[i]).MultiplyBy(1.0 / samples);
             
             layer = _preactivation[i];
         }
@@ -244,28 +245,36 @@ public class NeuralNetwork : ICostFunction
 
     public double ComputeCost(MatrixStorage x, MatrixStorage y)
     {
-        var hypothesis = FeedForward(x);
-
-        const int hypothesisIdx = 0;
-        const int yIdx = 1;
+        var h = FeedForward(x);
+        var compute = MatrixComputeContext.Create(_acceleration);
         
-        y.Multiply(-1.0, _negativeOutput[yIdx]);
+        const int hIdx = 0;
+        const int yIdx = 1;
+
+        compute.PerformOn(y).Into(_negativeOutput[yIdx]).MultiplyBy(-1.0);
+        compute.PerformOn(h).Into(_negativeOutput[hIdx]).MultiplyBy(-1.0);
+        compute.PerformOnSelf(h).Log();
+
+        /*y.Multiply(-1.0, _negativeOutput[yIdx]);
         hypothesis.Multiply(-1.0, _negativeOutput[hypothesisIdx]);
 
-        hypothesis.PointwiseLog(hypothesis);
-        _negativeOutput[yIdx].PointwiseMultiply(hypothesis, hypothesis);
-
+        hypothesis.PointwiseLog(hypothesis);*/
+        
+        //compute.PerformOn(_negativeOutput[yIdx]).And(h).MultiplyInto(h);
+        _negativeOutput[yIdx].PointwiseMultiply(h, h);
         _negativeOutput[yIdx].Add(1.0, _negativeOutput[yIdx]);
-        _negativeOutput[hypothesisIdx].Add(1.0, _negativeOutput[hypothesisIdx]);
-        _negativeOutput[hypothesisIdx].PointwiseLog(_negativeOutput[hypothesisIdx]);
-        _negativeOutput[yIdx].PointwiseMultiply(_negativeOutput[hypothesisIdx], _negativeOutput[yIdx]);
+        _negativeOutput[hIdx].Add(1.0, _negativeOutput[hIdx]);
+
         
-        hypothesis.Subtract(_negativeOutput[yIdx], hypothesis);
+        _negativeOutput[hIdx].PointwiseLog(_negativeOutput[hIdx]);
+        _negativeOutput[yIdx].PointwiseMultiply(_negativeOutput[hIdx], _negativeOutput[yIdx]);
         
-        int m = x.Rows;
-        double cost = hypothesis.Sum();
+        h.Subtract(_negativeOutput[yIdx], h);
         
-        return cost / m;
+        int samples = x.Rows;
+        var cost = h.Sum();
+        
+        return cost / samples;
     }
 
     public void GradientDescent(MatrixStorage x, MatrixStorage y)

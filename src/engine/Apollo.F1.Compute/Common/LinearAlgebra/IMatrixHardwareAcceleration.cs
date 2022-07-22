@@ -1,7 +1,11 @@
-﻿namespace Apollo.F1.Compute.Common.LinearAlgebra;
+﻿using Apollo.F1.Compute.Common.Interfaces;
+
+namespace Apollo.F1.Compute.Common.LinearAlgebra;
 
 public interface IMatrixHardwareAcceleration
 {
+   public IRange GetRange();
+   
    public MatrixStorage Add(MatrixStorage first, MatrixStorage second);
    public void Add(MatrixStorage first, MatrixStorage second, MatrixStorage output);
 

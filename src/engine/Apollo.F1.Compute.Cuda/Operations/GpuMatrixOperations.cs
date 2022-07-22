@@ -1,13 +1,18 @@
 ﻿using Apollo.F1.Compute.Common.Buffers;
+using Apollo.F1.Compute.Common.Interfaces;
 using Apollo.F1.Compute.Common.LinearAlgebra;
 using Apollo.F1.Compute.Cuda.Buffers;
 using Apollo.F1.Compute.Cuda.Common;
 using Apollo.F1.Compute.Cuda.Kernels;
+using Apollo.F1.Compute.Cuda.Nvtx;
 
 namespace Apollo.F1.Compute.Cuda.Operations;
 
 public class GpuMatrixOperations : IMatrixHardwareAcceleration
 {
+    public IRange GetRange () => new NvtxRange();
+
+    
     public MatrixStorage Multiply(MatrixStorage first, MatrixStorage second)
     {
         var output = new MatrixStorage(first.Rows, second.Columns);
@@ -120,7 +125,8 @@ public class GpuMatrixOperations : IMatrixHardwareAcceleration
         InsertRow(matrix, output, value);
         return output;
     }
-    
+
+
     public MatrixStorage Add(MatrixStorage first, MatrixStorage second)
     {
         var output = new MatrixStorage(first.Rows, first.Columns);
