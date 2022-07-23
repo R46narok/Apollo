@@ -3,7 +3,7 @@
 void* allocate_global_memory(int64_t iBytes)
 {
     void* ptr;
-    cudaMalloc(&ptr, iBytes);
+    F1_CUDA_ASSERT(cudaMalloc(&ptr, iBytes));
     return ptr;
 }
 

@@ -1,4 +1,4 @@
-﻿namespace Apollo.F1.Compute.Cuda.Common;
+﻿namespace Apollo.F1.Compute.Cuda.Common.Execution;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public class KernelEntryPointAttribute : Attribute

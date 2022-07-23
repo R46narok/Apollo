@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Apollo.F1.Compute.Cuda.Common;
+namespace Apollo.F1.Compute.Cuda.Common.Interop;
 
 public static class Dll
 {

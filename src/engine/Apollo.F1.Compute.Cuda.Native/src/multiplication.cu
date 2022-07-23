@@ -36,6 +36,7 @@ void multiply(void* pFirst, void* pSecond, void* pOutput,
     multiply_kernel<<<dimGrid, dimBlock>>>((double*)pFirst, (double*)pSecond, (double*)pOutput,
                                            firstRows, firstColumns, secondColumns);
 
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
 
@@ -51,5 +52,6 @@ __global__ void multiply_scalar_kernel(double* pOutput, double* pInput, int iLen
 
 void multiply_scalar(void* input, void* pOutput, int iLength, double scalar)
 {
-    multiply_scalar_kernel<<<512, 256>>>((double *) pOutput, (double *) input, iLength, scalar);
+    multiply_scalar_kernel<<<512, 512>>>((double *) pOutput, (double *) input, iLength, scalar);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
 }

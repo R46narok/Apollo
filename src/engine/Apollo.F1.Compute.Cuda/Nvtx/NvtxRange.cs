@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Apollo.F1.Compute.Common.Interfaces;
 using Apollo.F1.Compute.Cuda.Common;
+using Apollo.F1.Compute.Cuda.Common.Interop;
 
 namespace Apollo.F1.Compute.Cuda.Nvtx;
 

@@ -15,8 +15,9 @@ void add_scalar(void* pInput, void* pOutput, int iLength, double scalar)
 {
     nvtxRangePush(__FUNCTION__);
 
-    add_scalar_kernel<<<512, 256>>>((double*)pInput, (double*)pOutput, iLength, scalar);
+    add_scalar_kernel<<<512, 512>>>((double*)pInput, (double*)pOutput, iLength, scalar);
 
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
 
@@ -33,6 +34,7 @@ __global__ void subtract_scalar_kernel(double* pInput, double* pOutput, int iLen
 void subtract_scalar(void* pInput, void* pOutput, int iLength, double scalar)
 {
     nvtxRangePush(__FUNCTION__);
-    subtract_scalar_kernel<<<512, 256>>>((double*)pInput, (double*)pOutput, iLength, scalar);
+    subtract_scalar_kernel<<<512, 512>>>((double*)pInput, (double*)pOutput, iLength, scalar);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }

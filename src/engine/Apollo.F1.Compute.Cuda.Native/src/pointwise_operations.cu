@@ -15,8 +15,9 @@ void pointwise_addition(void* pFirst, void* pSecond, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
 
-    pointwise_addition_kernel<<<512, 256>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
+    pointwise_addition_kernel<<<512, 512>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
                                                             iLength);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
 
@@ -34,8 +35,9 @@ void pointwise_subtraction(void* pFirst, void* pSecond, void* pOutput, int iLeng
 {
     nvtxRangePush(__FUNCTION__);
 
-    pointwise_subtraction_kernel<<<512, 256>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
+    pointwise_subtraction_kernel<<<512, 512>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
                                                             iLength);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
 
@@ -53,8 +55,9 @@ void pointwise_multiplication(void* pFirst, void* pSecond, void* pOutput, int iL
 {
     nvtxRangePush(__FUNCTION__);
 
-    pointwise_multiplication_kernel<<<512, 216>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
+    pointwise_multiplication_kernel<<<512, 512>>>((double *) pFirst, (double *) pSecond, (double *) pOutput,
                                                                iLength);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
 
@@ -71,7 +74,8 @@ __global__ void pointwise_log_kernel(double* pInput, double* pOutput, int iLengt
 void pointwise_log(void* pInput, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
-    pointwise_log_kernel<<<512, 256>>>((double*)pInput, (double*)pOutput, iLength);
+    pointwise_log_kernel<<<512, 512>>>((double*)pInput, (double*)pOutput, iLength);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
 
@@ -88,7 +92,9 @@ __global__ void pointwise_scaled_subtraction_kernel(double* pFirst, double* pSec
 void pointwise_scaled_subtraction(void* pFirst, void* pSecond, void* pOutput, int iLength, double scale)
 {
     nvtxRangePush(__FUNCTION__);
-    pointwise_scaled_subtraction_kernel<<<512, 256>>>((double*)pFirst, (double*)pSecond, (double*)pOutput,
+
+    pointwise_scaled_subtraction_kernel<<<512, 512>>>((double*)pFirst, (double*)pSecond, (double*)pOutput,
                                                                       iLength, scale);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }

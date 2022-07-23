@@ -25,4 +25,5 @@ void transpose(void* input, void* output, int rows, int columns)
     dim3 threads(BLOCK_DIM, BLOCK_DIM, 1);
 
     transpose_kernel<<< grid, threads >>>((double*)output, (double*)input, rows, columns);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
 }

@@ -1,6 +1,7 @@
 using Apollo.F1.Compute.Common.Buffers;
 using Apollo.F1.Compute.Common.LinearAlgebra;
 using Apollo.F1.Compute.Cuda.Buffers;
+using Apollo.F1.Compute.Cuda.Common.Interop;
 using Apollo.F1.Compute.Cuda.Operations;
 using Apollo.F1.Compute.Learning;
 using Apollo.F1.Compute.Learning.Neural;
@@ -18,7 +19,7 @@ var options = new NeuralNetworkOptions
 };
 var nn = new NeuralNetwork(options);
 
-int samples = 700;
+int samples = 5000;
 
 var x = new MatrixStorage(samples, 784);
 var y = new MatrixStorage(samples, 10);
@@ -49,8 +50,10 @@ while (!rd.EndOfStream && line <= samples)
 x.Buffer.Upload(cpuX);
 y.Buffer.Upload(cpuY);
 
+var assert = new CudaAssert();
+
 x = x.InsertColumn(1.0);
-var procedure = new GradientDescent<NeuralOptimizationContext, NeuralPredictionContext>(0.25, 1000);
+var procedure = new GradientDescent<NeuralOptimizationContext, NeuralPredictionContext>(0.25, 2000);
 procedure.Optimize(nn, x, y);
 
 // IHost host = Host.CreateDefaultBuilder(args)

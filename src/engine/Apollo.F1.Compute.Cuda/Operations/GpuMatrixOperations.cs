@@ -3,6 +3,7 @@ using Apollo.F1.Compute.Common.Interfaces;
 using Apollo.F1.Compute.Common.LinearAlgebra;
 using Apollo.F1.Compute.Cuda.Buffers;
 using Apollo.F1.Compute.Cuda.Common;
+using Apollo.F1.Compute.Cuda.Common.Execution;
 using Apollo.F1.Compute.Cuda.Kernels;
 using Apollo.F1.Compute.Cuda.Nvtx;
 

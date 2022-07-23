@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Apollo.F1.Compute.Cuda.Common;
+using Apollo.F1.Compute.Cuda.Common.Execution;
+using Apollo.F1.Compute.Cuda.Common.Interop;
 
 namespace Apollo.F1.Compute.Cuda.Kernels;
 

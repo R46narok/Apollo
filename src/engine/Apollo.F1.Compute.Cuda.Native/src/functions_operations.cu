@@ -14,7 +14,8 @@ void function_sigmoid(void* pInput, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
 
-    function_sigmoid_kernel<<<1024, 256>>>((double*)pInput, (double*)pOutput, iLength);
+    function_sigmoid_kernel<<<512, 512>>>((double*)pInput, (double*)pOutput, iLength);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
 
     nvtxRangePop();
 }
@@ -34,7 +35,7 @@ void function_sigmoid_gradient(void* pInput, void* pOutput, int iLength)
 {
     nvtxRangePush(__FUNCTION__);
 
-    function_sigmoid_gradient_kernel<<<1024, 256>>>((double*)pInput, (double*)pOutput, iLength);
-
+    function_sigmoid_gradient_kernel<<<512, 512>>>((double*)pInput, (double*)pOutput, iLength);
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }

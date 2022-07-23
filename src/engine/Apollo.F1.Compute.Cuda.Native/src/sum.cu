@@ -22,6 +22,6 @@ void sum(void* pInput, void* pOutput, int iRows, int iColumns)
     dim3 threads(1, 1, 1);
 
     sum_kernel<<<grid, threads>>>((double*)pInput, (double*)pOutput, iRows, iColumns);
-
+    F1_CUDA_ASSERT(cudaPeekAtLastError());
     nvtxRangePop();
 }
