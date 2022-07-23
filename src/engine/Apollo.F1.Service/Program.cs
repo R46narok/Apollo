@@ -3,14 +3,18 @@ using Apollo.F1.Compute.Common.LinearAlgebra;
 using Apollo.F1.Compute.Cuda.Buffers;
 using Apollo.F1.Compute.Cuda.Operations;
 using Apollo.F1.Compute.Learning;
-using Apollo.F1.Compute.Neural;
+using Apollo.F1.Compute.Learning.Neural;
+using Apollo.F1.Compute.Optimization;
+using Apollo.F1.Compute.Optimization.Algorithms;
 
 MatrixStorage.BufferFactory = new GlobalMemoryAllocator();
 MatrixStorage.Operations = new GpuMatrixOperations();
 
+var sqrt = Math.Sqrt(6);
 var options = new NeuralNetworkOptions
 {
-    Layers = new []{ 784, 300, 10}
+    Layers = new []{ 784, 300, 10},
+    Distribution = new UniformDistribution(sqrt)
 };
 var nn = new NeuralNetwork(options);
 
@@ -46,8 +50,8 @@ x.Buffer.Upload(cpuX);
 y.Buffer.Upload(cpuY);
 
 x = x.InsertColumn(1.0);
-nn.InitializeBufferBatches(samples);
-nn.GradientDescent(x, y);
+var procedure = new GradientDescent<NeuralOptimizationContext, NeuralPredictionContext>(0.25, 1000);
+procedure.Optimize(nn, x, y);
 
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })
