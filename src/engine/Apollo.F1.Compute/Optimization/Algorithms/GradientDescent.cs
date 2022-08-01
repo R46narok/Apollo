@@ -41,8 +41,8 @@ public class GradientDescent<T, U> : IOptimizationProcedure<T, U>
             for (int j = 0; j < parameters.Length; ++j)
                 parameters[j].Transpose(function.ParametersTransposed[j]);
             
-            if (i % 200 == 0) 
-                Console.WriteLine($"Iteration {i}, Cost: {function.ComputeCost(x, y, predictionContext)}");
+            if (i == 0 ||(i + 1) % 200 == 0 || i + 1 == _iterations) 
+                Console.WriteLine($"Iteration {i + 1}, Cost: {function.ComputeCost(x, y, predictionContext)}");
             derivatives = function.ComputeDerivatives(x, y, optimizationContext, predictionContext);
         }
     }

@@ -1,5 +1,4 @@
 #include "transformations.cuh"
-#include "stdio.h"
 #define BLOCK_SIZE 32
 
 __global__ void insert_column_kernel(double *pOutput, double* pInput, int width, int height, double value)
@@ -35,7 +34,6 @@ __global__ void insert_row_kernel(double *pOutput, double* pInput, int width, in
         pOutput[index_out] = pInput[index_in];
     }
 
-
     pOutput[0 * height + xIndex] = value;
 }
 
@@ -61,12 +59,7 @@ __global__ void remove_column_kernel(double* pInput, double* pOutput, int width,
             pOutput[index_out] = pInput[index_in];
         }
     }
-    /*if (xIndex < width && yIndex < height)
-    {
-        int index_in = xIndex * height + yIndex;
-        int index_out = xIndex * (height - 1) + (yIndex - 1);
-        pOutput[index_out] = pInput[index_in];
-    }*/
+
 }
 
 void remove_column(void* src, void* dst, int iRows, int iColumns)

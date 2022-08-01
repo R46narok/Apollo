@@ -19,7 +19,7 @@ var options = new NeuralNetworkOptions
 };
 var nn = new NeuralNetwork(options);
 
-int samples = 5000;
+int samples = 40000;
 
 var x = new MatrixStorage(samples, 784);
 var y = new MatrixStorage(samples, 10);
@@ -53,9 +53,45 @@ y.Buffer.Upload(cpuY);
 var assert = new CudaAssert();
 
 x = x.InsertColumn(1.0);
-var procedure = new GradientDescent<NeuralOptimizationContext, NeuralPredictionContext>(0.25, 2000);
+var procedure = new GradientDescent<NeuralOptimizationContext, NeuralPredictionContext>(0.25, 4000);
 procedure.Optimize(nn, x, y);
 
+using var rd2 = new StreamReader("mnist_test.csv");
+line = -1;
+int correct = 0;
+int wrong = 0;
+
+var predictionContext = new NeuralPredictionContext();
+predictionContext.AllocateMemoryForPredictionBatch(nn.Parameters, 1);
+while (!rd.EndOfStream)
+{
+    line++;
+    var splits = rd.ReadLine().Split(',');
+    if (line > 0)
+    {
+        var dd = Array.ConvertAll(splits, double.Parse);
+        var prediction = new MatrixStorage(1, 784);
+        var cpuData = new double[784];
+        var label = dd[0];
+        for (int i = 0; i < 784; ++i)
+            cpuData[i] = dd[1 + i] / 256.0;
+        prediction.Buffer.Upload(cpuData);
+        prediction = prediction.InsertColumn(1.0);
+
+
+        var result = nn.FeedForward(prediction, predictionContext);
+        var buffer = result.Buffer.Read();
+        var output = Math.Round(buffer[(int)label]);
+        
+        if (output == 0) wrong++;
+        else correct++;
+        // Console.WriteLine($"Label {label}: [{string.Join(" ", prediction.Buffer.Read())}]");
+        
+    }
+}
+
+
+Console.WriteLine($"Right: {correct}, wrong {wrong}");
 // IHost host = Host.CreateDefaultBuilder(args)
 //     .ConfigureServices(services => { services.AddHostedService<Worker>(); })
 //     .Build();
