@@ -12,10 +12,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Apollo.F1.Compute.Cuda\Apollo.F1.Compute.Cuda.csproj" />
-      <ProjectReference Include="..\..\Apollo.F1.Compute\Apollo.F1.Compute.csproj" />
       <ProjectReference Include="..\..\Common\Apollo.F1.Common\Apollo.F1.Common.csproj" />
       <ProjectReference Include="..\..\Compute\Apollo.F1.Compute.Cuda\Apollo.F1.Compute.Cuda.csproj" />
       <ProjectReference Include="..\..\Compute\Apollo.F1.Compute\Apollo.F1.Compute.csproj" />
+      <ProjectReference Include="..\..\Platform\Apollo.F1.Platform.Windows\Apollo.F1.Platform.Windows.csproj" />
     </ItemGroup>
 </Project>

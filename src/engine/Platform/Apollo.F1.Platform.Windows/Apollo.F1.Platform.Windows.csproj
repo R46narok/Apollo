@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Common\Apollo.F1.Platform\Apollo.F1.Platform.csproj" />
+      <ProjectReference Include="..\Apollo.F1.Platform\Apollo.F1.Platform.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Network" />
+    </ItemGroup>
+
+</Project>
