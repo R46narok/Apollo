@@ -1,8 +1,9 @@
-﻿using Apollo.F1.Platform.Attributes;
+﻿using System.Diagnostics.CodeAnalysis;
+using Apollo.F1.Platform.Attributes;
 using Apollo.F1.Platform.FileSystem.Enums;
 using Apollo.F1.Platform.FileSystem.Events;
 using Apollo.F1.Platform.FileSystem.Interfaces;
-using Apollo.F1.Platform.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace Apollo.F1.Platform.Windows.FileSystem;
 
@@ -16,8 +17,11 @@ public class WindowsFileSystem : IFileSystem
     public event EventHandler<FileSystemEventBase>? Deleted;
     public event EventHandler<FileSystemRenamedEvent>? Renamed;
     
-    public WindowsFileSystem(string path, string filter = "*.*")
+    public WindowsFileSystem(IConfiguration configuration)
     {
+        var path = configuration["FileSystem:Path"];
+        var filter = configuration["FileSystem:Filter"];
+        
         if (string.IsNullOrEmpty(path)) throw new ArgumentException();
         
         _watcher = new FileSystemWatcher(path);
@@ -44,7 +48,7 @@ public class WindowsFileSystem : IFileSystem
         _watcher.Deleted += (_, args) => Deleted?.Invoke(this, ConvertToFileSystemEventBase(args));
         _watcher.Renamed += (_, args) => Renamed?.Invoke(this, ConvertToFileSystemEventBase(args));
     }
-
+    
     private FileSystemEventBase ConvertToFileSystemEventBase(FileSystemEventArgs args)
     {
         return new FileSystemEventBase(args.FullPath, args.Name, (FileSystemChangeTypes) args.ChangeType);

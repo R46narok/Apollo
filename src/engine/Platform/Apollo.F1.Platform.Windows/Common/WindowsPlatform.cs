@@ -1,6 +1,7 @@
 ﻿using Apollo.F1.Platform;
 using Apollo.F1.Platform.Attributes;
-using Apollo.F1.Platform.Interfaces;
+using Apollo.F1.Platform.Common;
+using Apollo.F1.Platform.Execution.Interfaces;
 
 namespace Apollo.F1.Platform.Windows.Common;
 
@@ -8,4 +9,9 @@ namespace Apollo.F1.Platform.Windows.Common;
 public class WindowsPlatform : IPlatform
 {
     public string Id => Environment.OSVersion.VersionString;
+    
+    public IProcess[] GetRunningProcesses()
+    {
+        throw new NotImplementedException();
+    }
 }

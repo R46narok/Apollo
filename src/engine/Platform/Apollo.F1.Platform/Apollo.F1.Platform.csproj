@@ -11,7 +11,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Common" />
+      <Folder Include="Execution\Enums" />
+      <Folder Include="Network\Events" />
     </ItemGroup>
 
 </Project>
